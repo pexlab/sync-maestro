@@ -1,0 +1,95 @@
+{
+    "name"       : "supervisor",
+    "$schema"    : "../../node_modules/nx/schemas/project-schema.json",
+    "projectType": "application",
+    "prefix"     : "sync-maestro",
+    "sourceRoot" : "apps/supervisor/src",
+    "tags"       : [ ],
+    "targets"    : {
+        "build"       : {
+            "executor"            : "@angular-devkit/build-angular:browser",
+            "outputs"             : [
+                "{options.outputPath}"
+            ],
+            "options"             : {
+                "outputPath": "dist/apps/supervisor",
+                "index"     : "apps/supervisor/src/index.html",
+                "main"      : "apps/supervisor/src/main.ts",
+                "polyfills" : [
+                    "zone.js"
+                ],
+                "tsConfig"  : "apps/supervisor/tsconfig.app.json",
+                "assets"    : [
+                    "apps/supervisor/src/favicon.ico",
+                    "apps/supervisor/src/assets",
+                    {
+                        "glob"  : "**/*",
+                        "input" : "./node_modules/@pexlab/ngx-front-engine/assets/",
+                        "output": "/assets/"
+                    }
+                ],
+                "styles"    : [
+                    "apps/supervisor/src/styles.scss",
+                    "./node_modules/@pexlab/ngx-front-engine/assets/fe-styles/root.scss"
+                ],
+                "scripts"   : [ ]
+            },
+            "configurations"      : {
+                "production" : {
+                    "budgets"      : [
+                        {
+                            "type"          : "initial",
+                            "maximumWarning": "500kb",
+                            "maximumError"  : "1mb"
+                        },
+                        {
+                            "type"          : "anyComponentStyle",
+                            "maximumWarning": "2kb",
+                            "maximumError"  : "4kb"
+                        }
+                    ],
+                    "outputHashing": "all"
+                },
+                "development": {
+                    "buildOptimizer" : false,
+                    "optimization"   : false,
+                    "vendorChunk"    : true,
+                    "extractLicenses": false,
+                    "sourceMap"      : true,
+                    "namedChunks"    : true
+                }
+            },
+            "defaultConfiguration": "production"
+        },
+        "serve"       : {
+            "executor"            : "@angular-devkit/build-angular:dev-server",
+            "configurations"      : {
+                "production" : {
+                    "browserTarget": "supervisor:build:production"
+                },
+                "development": {
+                    "browserTarget": "supervisor:build:development"
+                }
+            },
+            "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+            "executor": "@angular-devkit/build-angular:extract-i18n",
+            "options" : {
+                "browserTarget": "supervisor:build"
+            }
+        },
+        "lint"        : {
+            "executor": "@nx/linter:eslint",
+            "outputs" : [
+                "{options.outputFile}"
+            ],
+            "options" : {
+                "lintFilePatterns": [
+                    "apps/supervisor/**/*.ts",
+                    "apps/supervisor/**/*.html"
+                ]
+            }
+        }
+    }
+}

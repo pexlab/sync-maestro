@@ -1,0 +1,207 @@
+@use 'node_modules/@pexlab/ngx-front-engine/assets/fe-styles/theme';
+@use 'node_modules/@pexlab/ngx-front-engine/assets/fe-styles/utils';
+@use '../assets/shared';
+
+:host {
+  
+  position : fixed;
+  top      : 0;
+  left     : 0;
+  width    : utils.vw(100);
+  height   : utils.vh(100);
+  
+  @include shared.crt(black);
+  
+  & > .grid {
+	
+	width           : 100%;
+	height          : 100%;
+	
+	display         : grid;
+	grid-auto-flow  : column;
+	justify-content : start;
+	grid-gap        : 15px;
+	padding         : 15px;
+	align-content   : start;
+	
+	& > .item {
+	  
+	  position       : relative;
+	  
+	  width          : 500px;
+	  min-height     : 400px;
+	  height         : fit-content;
+	  border         : 4px solid lightgrey;
+	  outline        : 1px dotted lightgrey;
+	  outline-offset : 2px;
+	  
+	  & > span:nth-child(1) {
+		
+		z-index        : 1;
+		
+		position       : absolute;
+		
+		left           : 20px;
+		top            : -2px;
+		
+		line-height    : 4px;
+		
+		transform      : translateY(-50%);
+		
+		background     : black;
+		color          : lightgrey;
+		
+		text-transform : uppercase;
+		letter-spacing : 1px;
+		
+		padding        : 0 5px;
+		
+		@include theme.commonFont('heading');
+		font-size      : 16px;
+		font-weight    : bold;
+		
+		&:before {
+		  z-index    : -1;
+		  position   : absolute;
+		  content    : '';
+		  left       : 0;
+		  bottom     : 0;
+		  height     : 4px + 1px + 2px;
+		  width      : 100%;
+		  background : black;
+		}
+	  }
+	  
+	  & > div > button {
+		margin : 15px 100px;
+	  }
+	  
+	  & > .uart {
+		
+		position       : relative;
+		
+		display        : grid;
+		grid-auto-flow : row;
+		
+		width          : 100%;
+		height         : 100%;
+		
+		& > div {
+		  
+		  display               : grid;
+		  grid-template-columns : 1fr 1fr;
+		  grid-row-gap          : 5px;
+		  align-content         : center;
+		  
+		  color                 : white;
+		  width                 : 100%;
+		  padding               : 10px 30px 10px 30px;
+		  
+		  @include theme.commonFont('code');
+		  @include theme.commonFontSize('subheading');
+		  
+		  & > :nth-child(1) {
+			grid-column    : 1 / -1;
+			margin-bottom  : 20px;
+			justify-self   : center;
+			text-align     : center;
+			opacity        : .7;
+			@include theme.inlineIcon(20px);
+			display        : grid;
+			grid-auto-flow : column;
+			grid-gap       : 10px;
+			width          : fit-content;
+			align-items    : center;
+		  }
+		  
+		  & > :nth-child(even) {
+			opacity      : .7;
+			text-align   : left;
+			justify-self : left;
+		  }
+		  
+		  & > :nth-child(odd):not(:nth-child(1)) {
+			@include theme.commonFontSize('heading');
+			justify-self : right;
+			text-align   : right;
+			white-space  : pre;
+			font-family  : 'IBM CGA Thin', monospace;
+			font-size    : 11px;
+		  }
+		}
+		
+		& > div:nth-child(odd) {
+		  @include shared.crt(#0b440b);
+		}
+		
+		& > div:nth-child(even) {
+		  @include shared.crt(#062c06);
+		}
+		
+		& > div:last-child {
+		  margin-bottom : 65px;
+		}
+	  }
+	  
+	  & > .devices {
+		
+		display        : grid;
+		grid-auto-flow : row;
+		align-content  : start;
+		
+		width          : 100%;
+		height         : 100%;
+		
+		& > div {
+		  
+		  display               : grid;
+		  grid-template-columns : auto 1fr;
+		  grid-gap              : 20px;
+		  
+		  color                 : white;
+		  width                 : 100%;
+		  padding               : 20px;
+		  
+		  @include theme.commonFont('code');
+		  
+		  @include theme.inlineIcon(30px);
+		  
+		  &:nth-child(odd) {
+			@include shared.crt(#0b440b);
+		  }
+		  
+		  &:nth-child(even) {
+			@include shared.crt(#062c06);
+		  }
+		  
+		  & > svg-icon {
+			align-self : start;
+		  }
+		  
+		  & > div {
+			
+			width          : 100%;
+			display        : grid;
+			grid-auto-flow : row;
+			grid-gap       : 3px;
+			
+			& .heading {
+			  @include theme.commonFontSize('subheading');
+			}
+			
+			& > div {
+			  
+			  display         : grid;
+			  grid-auto-flow  : column;
+			  grid-gap        : 5px;
+			  justify-content : start;
+			  align-items     : center;
+			  
+			  @include theme.inlineIcon(20px);
+			}
+		  }
+		}
+	  }
+	}
+  }
+}

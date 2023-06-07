@@ -1,32 +1,27 @@
 {
-    "compileOnSave"  : false,
-    "compilerOptions": {
-        "rootDir"               : ".",
-        "sourceMap"             : true,
-        "declaration"           : false,
-        "moduleResolution"      : "node",
-        "emitDecoratorMetadata" : true,
-        "experimentalDecorators": true,
-        "importHelpers"         : true,
-        "target"                : "es2015",
-        "module"                : "esnext",
-        "lib"                   : [
-            "es2020",
-            "dom"
-        ],
-        "skipLibCheck"          : true,
-        "skipDefaultLibCheck"   : true,
-        "baseUrl"               : ".",
-        "paths"                 : {
-            "@sync-maestro/shared-interfaces": [
-                "libs/shared-interfaces/src/index.ts"
-            ]
-        },
-        "strict"                : true,
-        "strictNullChecks"      : true
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@sync-maestro/shared-interfaces": [
+        "libs/shared-interfaces/src/index.ts"
+      ],
+      "@sync-maestro/shared-utils": ["libs/shared-utils/src/index.ts"]
     },
-    "exclude"        : [
-        "node_modules",
-        "tmp"
-    ]
+    "strict": true,
+    "strictNullChecks": true
+  },
+  "exclude": ["node_modules", "tmp"]
 }

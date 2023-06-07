@@ -1,0 +1,4 @@
+@mixin crt($screen-background) {
+  background      : linear-gradient($screen-background 50%, darken(rgba($screen-background, .86), 10) 50%), linear-gradient(90deg, rgba(255, 0, 0, 1), rgba(0, 255, 0, 1), rgba(0, 0, 255, 1));
+  background-size : 100% 1.2px, 2.1px 100%;
+}

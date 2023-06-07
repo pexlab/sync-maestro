@@ -1,13 +1,20 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "files": [],
-  "include": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
+    "extends"        : "../../tsconfig.base.json",
+    "files"          : [ ],
+    "include"        : [ ],
+    "references"     : [
+        {
+            "path": "./tsconfig.app.json"
+        }
+    ],
+    "compilerOptions": {
+        "module"          : "ESNext",
+        "target"          : "ESNext",
+        "moduleResolution": "Node",
+        "allowJs"         : true,
+        "noEmit"          : true,
+        "strict"          : true,
+        "isolatedModules" : true,
+        "esModuleInterop" : true
     }
-  ],
-  "compilerOptions": {
-    "esModuleInterop": true
-  }
 }

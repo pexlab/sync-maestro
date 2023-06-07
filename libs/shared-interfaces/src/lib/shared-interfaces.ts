@@ -1,11 +1,18 @@
 import { z } from 'zod';
 
+export const ZGreeting = z.object( {
+    type: z.literal( 'Greeting' ),
+    data: z.object( {
+        identifier: z.string()
+    } )
+} );
+
 export const ZVideoDevice = z.enum( [
     'Desktop',
     'Laptop',
     'Tablet',
-    'Phone',
-    'TV',
+    'MobilePhone',
+    'Television',
     'Projector',
     'Monitor',
     'VirtualReality',
@@ -15,8 +22,8 @@ export const ZVideoDevice = z.enum( [
 export const ZAudioDevice = z.enum( [
     'WiredSpeaker',
     'WirelessSpeaker',
-    'WiredHeadphones',
-    'WirelessHeadphones',
+    'WiredHeadphone',
+    'WirelessHeadphone',
     'CarAudio'
 ] );
 
@@ -38,7 +45,9 @@ export const ZFilter = z.object( {
 
 export const ZDeviceConfig = z.object( {
     
-    name: z.string()
+    name    : z.string(),
+    channels: z.string().array(),
+    offset  : z.number()
     
 } ).and( z.union( [
     
@@ -48,24 +57,48 @@ export const ZDeviceConfig = z.object( {
         
         device: ZVideoDevice,
         
-        bitrate: z.enum( [
-            'Ultra',
-            'High',
-            'Medium',
-            'Low'
-        ] ),
-        
-        resolution: z.enum( [
-            '4k',
-            '1080p',
-            '720p',
-            '480p'
-        ] ),
-        
-        fit: z.enum( [
-            'Contain',
-            'Cover'
-        ] )
+        video: z.object( {
+            
+            resolution: z.enum( [
+                '4k',
+                '1080p',
+                '720p',
+                '480p'
+            ] ),
+            
+            fit: z.enum( [
+                'ContainImage',
+                'StretchImage',
+                'FillScreen'
+            ] )
+            
+        } ).and( z.union( [
+                
+                z.object( {
+                    codec      : z.literal( 'H.264 / AVC' ),
+                    compression: z.enum( [ 'Raw', 'UnnoticeableCompression', 'StrongCompression' ] ),
+                    container  : z.enum( [ 'Mp4', 'Mkv', 'Avi', 'Mov' ] )
+                } ),
+                
+                z.object( {
+                    codec      : z.literal( 'H.265 / HEVC' ),
+                    compression: z.enum( [ 'Raw', 'UnnoticeableCompression', 'StrongCompression' ] ),
+                    container  : z.enum( [ 'Mp4', 'Mkv', 'Avi', 'Mov' ] )
+                } ),
+                
+                z.object( {
+                    codec      : z.literal( 'VP9' ),
+                    compression: z.enum( [ 'Raw', 'UnnoticeableCompression', 'StrongCompression' ] ),
+                    container  : z.enum( [ 'WebM', 'Mkv' ] )
+                } ),
+                
+                z.object( {
+                    codec      : z.literal( 'AV1' ),
+                    compression: z.enum( [ 'Raw', 'UnnoticeableCompression', 'StrongCompression' ] ),
+                    container  : z.enum( [ 'Mp4', 'Mkv', 'Avi', 'WebM' ] )
+                } )
+            ] )
+        )
     } ),
     
     z.object( {
@@ -74,15 +107,34 @@ export const ZDeviceConfig = z.object( {
         
         device: ZAudioDevice,
         
-        bitrate: z.enum( [
-            'Compressed',
-            'Lossless'
-        ] ),
-        
-        equalize: z.object( {
-            preamp : z.number().min( -12 ).max( 12 ),
-            filters: ZFilter.array().min( 1 ).max( 10 )
-        } ).optional()
+        audio: z.object( {
+            
+            equalization: z.object( {
+                amplification: z.number().min( -12 ).max( 12 ),
+                filters      : ZFilter.array().min( 1 ).max( 10 )
+            } ).optional()
+            
+        } ).and( z.union( [
+                
+                z.object( {
+                    compression: z.literal( 'Raw' ),
+                    codec      : z.literal( 'Flac' ),
+                    container  : z.enum( [ 'Flac', 'Mkv', 'Wav' ] )
+                } ),
+                
+                z.object( {
+                    compression: z.enum( [ '64KbpsBitrate', '80KbpsBitrate', '128KbpsBitrate' ] ),
+                    codec      : z.enum( [ 'Opus' ] ),
+                    container  : z.enum( [ 'WebM', 'Mkv', 'Ogg' ] )
+                } ),
+                
+                z.object( {
+                    compression: z.enum( [ 'CompressionLevel3', 'CompressionLevel6', 'CompressionLevel12' ] ),
+                    codec      : z.enum( [ 'Flac' ] ),
+                    container  : z.enum( [ 'Flac' ] )
+                } )
+            ] )
+        )
     } )
 ] ) );
 

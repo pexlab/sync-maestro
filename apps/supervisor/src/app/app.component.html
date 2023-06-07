@@ -1,0 +1,148 @@
+<fe-root></fe-root>
+
+<div class="grid">
+
+    <div class="item">
+        <span>Uart</span>
+        <div class="uart">
+            <div>
+                <span><svg-icon src="assets/icon/small.svg"></svg-icon> Macro Timeframe</span>
+                <span>Current tick</span>
+                <span #longCycle>×</span>
+                <span>Ticks since startup</span>
+                <span>10.000&nbsp;&nbsp;t</span>
+                <span>Tick occurrence</span>
+                <span>1.000 ms</span>
+                <span>Since last tick</span>
+                <span #longCycleLastUpdate>×&nbsp;ms</span>
+                <span>Field discrepancy</span>
+                <span #longCycleDiscrepancy>×&nbsp;μs</span>
+                <span>Singular discrepancy</span>
+                <span>×&nbsp;μs</span>
+                <span>Overall discrepancy</span>
+                <span>×&nbsp;μs</span>
+            </div>
+            <div>
+                <span><svg-icon src="assets/icon/large.svg"></svg-icon> Micro Timeframe</span>
+                <span>Current Tick</span>
+                <span #shortCycle>×</span>
+                <span>Ticks since startup</span>
+                <span>10.000&nbsp;&nbsp;t</span>
+                <span>Tick occurrence</span>
+                <span>10.000 μs</span>
+                <span>Since last tick</span>
+                <span #shortCycleLastUpdate>×&nbsp;μs</span>
+                <span>Field discrepancy</span>
+                <span #shortCycleDiscrepancy>×&nbsp;μs</span>
+                <span>Singular discrepancy</span>
+                <span>×&nbsp;μs</span>
+                <span>Overall discrepancy</span>
+                <span>×&nbsp;μs</span>
+            </div>
+            <button class="red">
+                <svg-icon src="assets/icon/reset.svg"></svg-icon>
+                <span>Reset statistics</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="item">
+
+        <span>Active devices</span>
+
+        <div class="devices">
+            <div *ngFor="let device of activeDevices">
+
+                <svg-icon [src]="'assets/device/' + kebabCase(device.device) + '.svg'"></svg-icon>
+
+                <div>
+
+                    <span class="heading">{{ device.name }}</span>
+
+                    <span>{{ ReadableCase(device.device) }}</span>
+
+                    <div>
+                        <svg-icon src="assets/icon/health.svg"></svg-icon>
+                        <span>Health OK</span>
+                    </div>
+
+                    <div>
+                        <svg-icon src="assets/icon/channel.svg"></svg-icon>
+                        <span>{{ device.channels.join(', ') }}</span>
+                    </div>
+
+                    <ng-container *ngIf="device.type === 'Video'">
+                        <div>
+                            <svg-icon src="assets/icon/video.svg"></svg-icon>
+                            <span>
+                                {{ device.video.resolution }}, {{ ReadableCase(device.video.fit) }},
+                                {{ ReadableCase(device.video.compression) }},<br/>
+                                {{ device.video.codec }} Codec, {{ device.video.container }} File
+                            </span>
+                        </div>
+                    </ng-container>
+
+                    <ng-container *ngIf="device.type === 'Audio'">
+                        <div *ngIf="device.audio.equalization !== undefined">
+                            <svg-icon src="assets/icon/equalizer.svg"></svg-icon>
+                            <span>Equalized</span>
+                        </div>
+                        <div>
+                            <svg-icon src="assets/icon/audio.svg"></svg-icon>
+                            {{ device.audio.codec }} Codec, {{ ReadableCase(device.audio.compression) }}
+                            , {{ ReadableCase(device.audio.container) }} File
+                        </div>
+                    </ng-container>
+
+                    <div>
+                        <svg-icon src="assets/icon/offset.svg"></svg-icon>
+                        <span>{{ ReadableNumber(device.offset, { unit: 'ms' }) }} Offset</span>
+                    </div>
+
+                    <div>
+                        <svg-icon src="assets/icon/download.svg"></svg-icon>
+                        <span>40 Mbps</span>
+                        <svg-icon src="assets/icon/upload.svg"></svg-icon>
+                        <span>10 Kbps</span>
+                    </div>
+
+                    <div>
+                        <button>
+                            <svg-icon src="assets/icon/settings.svg"></svg-icon>
+                            <span>Settings</span>
+                        </button>
+                        <button *ngIf="device.type === 'Audio'">
+                            <svg-icon src="assets/icon/sound.svg"></svg-icon>
+                            <span>Testsound</span>
+                        </button>
+                        <button *ngIf="device.type === 'Video'">
+                            <svg-icon src="assets/icon/image.svg"></svg-icon>
+                            <span>Testimage</span>
+                        </button>
+                        <button class="red">
+                            <svg-icon src="assets/icon/x.svg"></svg-icon>
+                            <span>Disable</span>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <button class="red">
+                <svg-icon src="assets/icon/x.svg"></svg-icon>
+                <span>Disable all</span>
+            </button>
+        </div>
+
+    </div>
+
+    <div class="item">
+        <span>Tasks in progress</span>
+    </div>
+
+    <div class="item">
+        <span>Playlist</span>
+    </div>
+
+</div>
