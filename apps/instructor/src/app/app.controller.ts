@@ -1,13 +1,20 @@
-import { Body, Controller, Get, OnModuleDestroy, Post } from '@nestjs/common';
+import { Body, Controller, Get, OnModuleDestroy, OnModuleInit, Post } from '@nestjs/common';
 import { ZDeviceConfig, ZRegisteredDevice } from '@sync-maestro/shared-interfaces';
 import { z } from 'zod';
+import { Instructor } from './instructor';
 import { clientManagerService } from './services/client-manager.service';
 import { socketService } from './services/socket.service';
 
 @Controller()
-export class AppController implements OnModuleDestroy {
+export class AppController implements OnModuleDestroy, OnModuleInit {
     
     constructor() {
+    }
+    
+    public onModuleInit(): any {
+        setTimeout( () => {
+            new Instructor();
+        }, 5000 );
     }
     
     @Get( 'devices' )

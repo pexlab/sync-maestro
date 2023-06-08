@@ -91,9 +91,10 @@ export class SocketService {
     }
     
     public sendClient( identifier: string, message: Record<string, any> ) {
-        const client = Array.from( this.clientIdentifierMap.entries() ).find( ( [ , value ] ) => value === identifier );
+        const clientIdentifier = Array.from( this.clientIdentifierMap.entries() ).find( ( [ , value ] ) => value === identifier );
+        const client           = clientIdentifier && clientIdentifier[ 0 ] && this.clientMap.get( clientIdentifier[ 0 ] );
         if ( client ) {
-            this.clientMap.get( client[ 0 ] )?.send( JSON.stringify( message ) );
+            client.send( JSON.stringify( message ) );
         }
     }
     

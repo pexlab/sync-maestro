@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import process from "process";
-import {IClientInstruction, IPlaylist, ZPlaylist} from "@sync-maestro/shared-interfaces";
+import {IClientInstruction, IPlaylist, ZPlaylist} from "./playlist.interface";
 import {SimulateAdapter} from "@sync-maestro/shared-utils";
 import {socketService} from "./services/socket.service";
 import {clientManagerService} from "./services/client-manager.service";

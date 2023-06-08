@@ -35,6 +35,8 @@ export class Obeyer {
             
             let block = false;
             
+            this.timer.enable();
+            
             this.timer.onTick.subscribe( async () => {
                 
                 if ( block ) {
@@ -60,6 +62,8 @@ export class Obeyer {
                     await this.mpv.pause();
                     await this.mpv.scrub( currentCommand.media.be_at );
                     
+                    this.currentURL = currentCommand.media.url;
+                    
                     block = false;
                     
                     return;
@@ -79,7 +83,6 @@ export class Obeyer {
                 
                 block = true;
                 
-                await this.mpv.scrub( currentCommand.media.be_at );
                 await this.mpv.resume();
                 
                 block = false;
