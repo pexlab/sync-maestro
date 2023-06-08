@@ -1,16 +1,11 @@
 import {z} from 'zod';
 import {spawnSync} from "child_process";
-import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 
 export const ZMedia = z.object({
   name: z.string(),
   file_path: z.string()
-    .transform((val) =>  path.join(os.homedir(), val))
-    .refine((value) => {
-    return fs.existsSync( value)
-  })
 }).transform((obj) => {
 
   const ffmpegArgs = [
@@ -18,7 +13,7 @@ export const ZMedia = z.object({
     '-show_entries',
     'format=duration',
     '-of', 'default=noprint_wrappers=1:nokey=1',
-    obj.file_path
+    path.join(os.homedir(), obj.file_path)
   ];
 
   const duration = +spawnSync( 'ffprobe', ffmpegArgs ).stdout.toString();
