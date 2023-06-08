@@ -49,13 +49,15 @@ export class Obeyer {
                 const macro = this.timer.currentMacroTick;
                 const micro = this.timer.currentMicroTick;
 
-                const currentCommand = this.commands.find( command => {
-                    return command.at_macro_tick === macro && command.at_micro_tick === micro;
-                } );
+                const currentCommand = this.commands.filter( command => {
+                    return command.at_macro_tick === macro; // TODO: Micro as well
+                } ).at(-1);
 
                 if ( !currentCommand ) {
                     return;
                 }
+
+              console.log(currentCommand)
 
                 if ( currentCommand.media.url !== this.currentURL ) {
 
