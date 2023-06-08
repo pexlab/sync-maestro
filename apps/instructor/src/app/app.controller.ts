@@ -12,9 +12,7 @@ export class AppController implements OnModuleDestroy, OnModuleInit {
     }
     
     public onModuleInit(): any {
-        setTimeout( () => {
-            new Instructor();
-        }, 5000 );
+        new Instructor();
     }
     
     @Get( 'devices' )

@@ -52,30 +52,11 @@ export class UARTAdapter implements Timer {
         
         this.ttl.on( 'data', ( data ) => {
             
-            let cycles = 0;
-            
-            const interval = setInterval( () => {
-                
-                this._microTick = this._microTick === 99 ? 0 : this._microTick + 1;
-                this._microTicksSinceStartup++;
-                
-                this.onMicroTick.next( {
-                    tick               : this._microTick,
-                    ticks_since_startup: this._microTicksSinceStartup
-                } );
-                
-                this.onTick.next();
-                
-                cycles++;
-                
-                if ( cycles === 100 ) {
-                    clearInterval( interval );
-                }
-                
-            }, 10 );
-            
-            this._macroTick = Number( data.toString() );
+            this._macroTick = Number( data[0] );
             this._macroTicksSinceStartup++;
+            
+            this._microTick += 0;
+            this._microTicksSinceStartup += 100;
             
             this.onMacroTick.next( {
                 tick               : this._macroTick,

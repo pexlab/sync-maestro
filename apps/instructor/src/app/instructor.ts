@@ -32,7 +32,10 @@ export class Instructor{
       for (const [key, value] of clientManagerService.clientList) {
 
         const instructions = this.prepare(this.current_playlist, this.current_playlist_begin, macro, micro_since_startup, value.offset);
-
+        
+        console.log(macro + ' ' + micro_since_startup);
+       // console.log(instructions);
+        
         socketService.sendClient(key, instructions);
       }
     })
@@ -87,14 +90,14 @@ export class Instructor{
     let micro_since_startup = current_micro_since_startup;
 
     //offset in micro
-    current_playlist_begin -= offset / 10;
+    let playlist_begin = current_playlist_begin - (offset / 10);
 
     const instructions: IClientInstruction[] = [];
 
     for (let m = current_macro_tick; m <= 254 + current_macro_tick - 1; m++) {
       const macro = m > 254 ? (m - 254) : m;
 
-      let current_media = this.getCurrentMedia(playlist, current_playlist_begin, micro_since_startup);
+      let current_media = this.getCurrentMedia(playlist, playlist_begin, micro_since_startup);
       let media = playlist.media[this.normalizeMediaIndex(playlist, current_media.media_index)];
 
       instructions.push({
@@ -111,7 +114,7 @@ export class Instructor{
       if(current_media.media_remaining < 100){
         const remain = current_media.media_remaining;
 
-        current_media = this.getCurrentMedia(playlist, current_playlist_begin, micro_since_startup + current_media.media_remaining);
+        current_media = this.getCurrentMedia(playlist, playlist_begin, micro_since_startup + current_media.media_remaining);
         media = playlist.media[this.normalizeMediaIndex(playlist, current_media.media_index)];
 
 
@@ -135,8 +138,8 @@ export class Instructor{
         }
 
         micro_since_startup += 300;
-
-        current_playlist_begin = micro_since_startup - time;
+        
+        playlist_begin = micro_since_startup - time;
         continue;
       }
 

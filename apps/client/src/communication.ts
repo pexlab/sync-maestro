@@ -91,6 +91,7 @@ export class CommunicationService {
             
             this.socket.onmessage = ( event ) => {
                 const message = JSON.parse( String( event.data ) );
+                console.log(message);
                 this.messages.next( message );
             };
             
