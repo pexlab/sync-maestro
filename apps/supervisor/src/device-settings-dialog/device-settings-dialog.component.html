@@ -1,0 +1,414 @@
+<ng-container *ngIf="group" [formGroup]="group">
+
+    <div class="stacked">
+
+        <fe-text-field formControlName="id" feAlignGroup="device-settings">
+            <ng-template>
+                <span>Identifier</span>
+            </ng-template>
+        </fe-text-field>
+
+        <fe-text-field formControlName="name" feAlignGroup="device-settings">
+            <ng-template>
+                <span>Name</span>
+            </ng-template>
+        </fe-text-field>
+
+        <ng-container formArrayName="channel">
+
+            <fe-text-field *ngFor="let channel of group.controls.channel.controls; let i = index; let last = last"
+                           [formControl]="channel"
+                           feAlignGroup="device-settings">
+                <ng-template>
+                    <svg-icon src="assets/icon/channel.svg"></svg-icon>
+                    <span>{{ last ? 'Assign another' : 'Channel ' + (i + 1) }}</span>
+                </ng-template>
+            </fe-text-field>
+
+        </ng-container>
+
+        <fe-text-field formControlName="offset" feAlignGroup="device-settings">
+            <ng-template>
+                <svg-icon src="assets/icon/offset.svg"></svg-icon>
+                <span>Offset</span>
+            </ng-template>
+        </fe-text-field>
+
+    </div>
+
+    <div class="besides">
+
+        <fe-dropdown formControlName="type">
+
+            <fe-dropdown-choice feValue="Video">
+                <div feContent>
+                    <svg-icon src="assets/icon/video.svg"></svg-icon>
+                    <span>Video</span>
+                </div>
+                <span fePlaceholder>Type: Video</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="Audio">
+                <div feContent>
+                    <svg-icon src="assets/icon/audio.svg"></svg-icon>
+                    <span>Audio</span>
+                </div>
+                <span fePlaceholder>Type: Audio</span>
+            </fe-dropdown-choice>
+        </fe-dropdown>
+
+        <fe-dropdown formControlName="device" *ngIf="group.controls.type.value === 'Video'"
+                     feEmptyNotice="Choose device type">
+
+            <fe-dropdown-choice feValue="Desktop">
+                <div feContent>
+                    <svg-icon src="assets/device/desktop.svg"></svg-icon>
+                    <span>Desktop</span>
+                </div>
+                <span fePlaceholder>Device: Desktop</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="Laptop">
+                <div feContent>
+                    <svg-icon src="assets/device/laptop.svg"></svg-icon>
+                    <span>Laptop</span>
+                </div>
+                <span fePlaceholder>Device: Laptop</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="Tablet">
+                <div feContent>
+                    <svg-icon src="assets/device/tablet.svg"></svg-icon>
+                    <span>Tablet</span>
+                </div>
+                <span fePlaceholder>Device: Tablet</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="MobilePhone">
+                <div feContent>
+                    <svg-icon src="assets/device/mobile-phone.svg"></svg-icon>
+                    <span>Mobile Phone</span>
+                </div>
+                <span fePlaceholder>Device: Mobile Phone</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="Television">
+                <div feContent>
+                    <svg-icon src="assets/device/television.svg"></svg-icon>
+                    <span>Television</span>
+                </div>
+                <span fePlaceholder>Device: Television</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="Projector">
+                <div feContent>
+                    <svg-icon src="assets/device/projector.svg"></svg-icon>
+                    <span>Projector</span>
+                </div>
+                <span fePlaceholder>Device: Projector</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="Monitor">
+                <div feContent>
+                    <svg-icon src="assets/device/monitor.svg"></svg-icon>
+                    <span>Monitor</span>
+                </div>
+                <span fePlaceholder>Device: Monitor</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="VirtualReality">
+                <div feContent>
+                    <svg-icon src="assets/device/virtual-reality.svg"></svg-icon>
+                    <span>Virtual Reality</span>
+                </div>
+                <span fePlaceholder>Device: Virtual Reality</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="CarDisplay">
+                <div feContent>
+                    <svg-icon src="assets/device/car-display.svg"></svg-icon>
+                    <span>Car Display</span>
+                </div>
+                <span fePlaceholder>Device: Car Display</span>
+            </fe-dropdown-choice>
+
+        </fe-dropdown>
+
+        <ng-container *ngIf="group.controls.type.value === 'Video'" formGroupName="video">
+
+            <fe-dropdown formControlName="resolution" feEmptyNotice="Choose resolution">
+
+                <fe-dropdown-choice feValue="4k">
+                    <span feContent>4K</span>
+                    <span fePlaceholder>Resolution: 4K</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="1080p">
+                    <span feContent>1080p</span>
+                    <span fePlaceholder>Resolution: 1080p</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="720p">
+                    <span feContent>720p</span>
+                    <span fePlaceholder>Resolution: 720p</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="480p">
+                    <span feContent>480p</span>
+                    <span fePlaceholder>Resolution: 480p</span>
+                </fe-dropdown-choice>
+
+            </fe-dropdown>
+
+            <fe-dropdown formControlName="fit" feEmptyNotice="Choose fit">
+
+                <fe-dropdown-choice feValue="ContainImage">
+                    <span feContent>Contain image</span>
+                    <span fePlaceholder>Fit: Contain image</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="StretchImage">
+                    <span feContent>Stretch image</span>
+                    <span fePlaceholder>Fit: Stretch image</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="FillScreen">
+                    <span feContent>Fill screen</span>
+                    <span fePlaceholder>Fit: Fill screen</span>
+                </fe-dropdown-choice>
+
+            </fe-dropdown>
+
+            <fe-dropdown formControlName="codec" feEmptyNotice="Choose codec">
+
+                <fe-dropdown-choice feValue="H.264 / AVC">
+                    <span feContent>H.264 / AVC</span>
+                    <span fePlaceholder>Codec: H.264 / AVC</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="H.265 / HEVC">
+                    <span feContent>H.265 / HEVC</span>
+                    <span fePlaceholder>Codec: H.265 / HEVC</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="VP9">
+                    <span feContent>VP9</span>
+                    <span fePlaceholder>Codec: VP9</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="AV1">
+                    <span feContent>AV1</span>
+                    <span fePlaceholder>Codec: AV1</span>
+                </fe-dropdown-choice>
+
+            </fe-dropdown>
+
+            <fe-dropdown formControlName="compression" feEmptyNotice="Choose compression">
+
+                <fe-dropdown-choice feValue="Raw">
+                    <span feContent>Raw</span>
+                    <span fePlaceholder>Compression: Raw</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="UnnoticeableCompression">
+                    <span feContent>Unnoticeable compression</span>
+                    <span fePlaceholder>Compression: Unnoticeable</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="StrongCompression">
+                    <span feContent>Strong compression</span>
+                    <span fePlaceholder>Compression: Strong</span>
+                </fe-dropdown-choice>
+
+            </fe-dropdown>
+
+            <fe-dropdown formControlName="container" feEmptyNotice="Choose container">
+
+                <fe-dropdown-choice feValue="Mp4"
+                                    *ngIf="oneOf(group.controls.video.controls.codec.value, 'H.264 / AVC', 'H.265 / HEVC', 'AV1')">
+                    <span feContent>Mp4</span>
+                    <span fePlaceholder>Container: Mp4</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="Mkv">
+                    <span feContent>Mkv</span>
+                    <span fePlaceholder>Container: Mkv</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="Avi"
+                                    *ngIf="oneOf(group.controls.video.controls.codec.value, 'H.264 / AVC', 'H.265 / HEVC', 'AV1')">
+                    <span feContent>Avi</span>
+                    <span fePlaceholder>Container: Avi</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="Mov"
+                                    *ngIf="oneOf(group.controls.video.controls.codec.value, 'H.264 / AVC', 'H.265 / HEVC')">
+                    <span feContent>Mov</span>
+                    <span fePlaceholder>Container: Mov</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="WebM"
+                                    *ngIf="oneOf(group.controls.video.controls.codec.value, 'VP9', 'AV1')">
+                    <span feContent>WebM</span>
+                    <span fePlaceholder>Container: WebM</span>
+                </fe-dropdown-choice>
+
+            </fe-dropdown>
+
+        </ng-container>
+
+        <fe-dropdown formControlName="device" *ngIf="group.controls.type.value === 'Audio'"
+                     feEmptyNotice="Choose device type">
+
+            <fe-dropdown-choice feValue="WiredSpeaker">
+                <div feContent>
+                    <svg-icon src="assets/device/wired-speaker.svg"></svg-icon>
+                    <span>Wired Speaker</span>
+                </div>
+                <span fePlaceholder>Device: Wired Speaker</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="WirelessSpeaker">
+                <div feContent>
+                    <svg-icon src="assets/device/wireless-speaker.svg"></svg-icon>
+                    <span>Wireless Speaker</span>
+                </div>
+                <span fePlaceholder>Device: Wireless Speaker</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="WiredHeadphone">
+                <div feContent>
+                    <svg-icon src="assets/device/wired-headphone.svg"></svg-icon>
+                    <span>Wired Headphone</span>
+                </div>
+                <span fePlaceholder>Device: Wired Headphone</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="WirelessHeadphone">
+                <div feContent>
+                    <svg-icon src="assets/device/wireless-headphone.svg"></svg-icon>
+                    <span>Wireless Headphone</span>
+                </div>
+                <span fePlaceholder>Device: Wireless Headphone</span>
+            </fe-dropdown-choice>
+
+            <fe-dropdown-choice feValue="CarAudio">
+                <div feContent>
+                    <svg-icon src="assets/device/car-audio.svg"></svg-icon>
+                    <span>Car Audio</span>
+                </div>
+                <span fePlaceholder>Device: Car Audio</span>
+            </fe-dropdown-choice>
+
+        </fe-dropdown>
+
+        <ng-container *ngIf="group.controls.type.value === 'Audio'" formGroupName="audio">
+
+            <fe-dropdown formControlName="codec" feEmptyNotice="Choose codec">
+
+                <fe-dropdown-choice feValue="Flac">
+                    <span feContent>Flac</span>
+                    <span fePlaceholder>Codec: Flac</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="Opus">
+                    <span feContent>Opus</span>
+                    <span fePlaceholder>Codec: Opus</span>
+                </fe-dropdown-choice>
+
+            </fe-dropdown>
+
+            <fe-dropdown formControlName="compression" feEmptyNotice="Choose compression">
+
+                <fe-dropdown-choice feValue="Raw"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Flac' && group.controls.audio.controls.container.value !== 'Flac'">
+                    <span feContent>Raw</span>
+                    <span fePlaceholder>Compression: Raw</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="CompressionLevel3"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Flac'">
+                    <span feContent>Level 3</span>
+                    <span fePlaceholder>Compression: Level 3</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="CompressionLevel6"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Flac'">
+                    <span feContent>Level 6</span>
+                    <span fePlaceholder>Compression: Level 6</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="CompressionLevel12"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Flac'">
+                    <span feContent>Level 12</span>
+                    <span fePlaceholder>Compression: Level 12</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="64KbpsBitrate"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Opus'">
+                    <span feContent>64 Kbps Bitrate</span>
+                    <span fePlaceholder>Compression: 64 Kbps Bitrate</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="80KbpsBitrate"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Opus'">
+                    <span feContent>80 Kbps Bitrate</span>
+                    <span fePlaceholder>Compression: 80 Kbps Bitrate</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="128KbpsBitrate"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Opus'">
+                    <span feContent>128 Kbps Bitrate</span>
+                    <span fePlaceholder>Compression: 128 Kbps Bitrate</span>
+                </fe-dropdown-choice>
+
+            </fe-dropdown>
+
+            <fe-dropdown formControlName="container" feEmptyNotice="Choose container">
+
+                <fe-dropdown-choice feValue="Flac"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Flac'">
+                    <span feContent>Flac</span>
+                    <span fePlaceholder>Container: Flac</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="Mkv"
+                                    *ngIf="(group.controls.audio.controls.codec.value === 'Flac' && group.controls.audio.controls.compression.value === 'Raw') || group.controls.audio.controls.codec.value === 'Opus'">
+                    <span feContent>Mkv</span>
+                    <span fePlaceholder>Container: Mkv</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="Wav"
+                                    *ngIf="(group.controls.audio.controls.codec.value === 'Flac' && group.controls.audio.controls.compression.value === 'Raw')">
+                    <span feContent>Wav</span>
+                    <span fePlaceholder>Container: Wav</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="Ogg"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Opus'">
+                    <span feContent>Ogg</span>
+                    <span fePlaceholder>Container: Ogg</span>
+                </fe-dropdown-choice>
+
+                <fe-dropdown-choice feValue="WebM"
+                                    *ngIf="group.controls.audio.controls.codec.value === 'Opus'">
+                    <span feContent>WebM</span>
+                    <span fePlaceholder>Container: WebM</span>
+                </fe-dropdown-choice>
+
+            </fe-dropdown>
+
+        </ng-container>
+
+    </div>
+
+
+    <div class="stacked">
+
+        <button (click)="convert()">
+            <span>Save</span>
+        </button>
+
+    </div>
+
+</ng-container>

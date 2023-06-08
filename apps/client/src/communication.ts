@@ -30,7 +30,7 @@ export class CommunicationService {
     
     public setServer( address: string | undefined ) {
         
-        logCommunication.log( 'Connecting to server at ' + address );
+        logCommunication.log( 'Connecting to ' + address );
         
         if ( this.socket ) {
             this.socket.close();

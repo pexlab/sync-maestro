@@ -46,6 +46,11 @@ export class ClientManagerService {
     public get clientList() {
         return Array.from( this.clients.entries() );
     }
+    
+    public async changeDevice( id: string, config: z.infer<typeof ZDeviceConfig> ) {
+        this.clients.set( id, config );
+        await databaseService.set( id, config );
+    }
 }
 
 export const clientManagerService = new ClientManagerService();

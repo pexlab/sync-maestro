@@ -1,6 +1,9 @@
-import * as ip from 'ip';
 import kebabCase from 'just-kebab-case';
 import replaceAll from 'just-replace-all';
+
+export function Capitalize( string: string ) {
+    return string.replace(/\b\w/g, l => l.toUpperCase())
+}
 
 export function NumberSign( number: number, option?: 'always' | 'negative-only' | 'positive-only', spacing = true ) {
     
@@ -61,19 +64,5 @@ export function ReadableNumber( number: number, options?: {
 }
 
 export function ReadableCase( string: string | undefined ) {
-    return string ? replaceAll( kebabCase( string ), '-', ' ' ) : '';
-}
-
-export function FindFirstLan4( addresses: string[] ) {
-    
-    for ( let i = 0; i < addresses.length; i++ ) {
-        
-        const address = addresses[ i ];
-        
-        if ( ip.isPrivate( address ) && ip.isV4Format( address ) ) {
-            return address;
-        }
-    }
-    
-    return null;
+    return string ? Capitalize( replaceAll( kebabCase( string ), '-', ' ' ) ) : '';
 }

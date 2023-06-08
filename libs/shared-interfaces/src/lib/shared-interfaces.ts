@@ -158,3 +158,7 @@ export const ZJob = z.union( [
     } )
 
 ] );
+
+export const ZRegisteredDevice = ZDeviceConfig.and( z.object( {
+    identifier: z.string()
+} ) );

@@ -8,15 +8,15 @@
             <div>
                 <span><svg-icon src="assets/icon/small.svg"></svg-icon> Macro Timeframe</span>
                 <span>Current tick</span>
-                <span #longCycle>×</span>
+                <span #macroTick>×</span>
                 <span>Ticks since startup</span>
-                <span>10.000&nbsp;&nbsp;t</span>
+                <span #macroTicksSinceStart>×</span>
                 <span>Tick occurrence</span>
                 <span>1.000 ms</span>
                 <span>Since last tick</span>
-                <span #longCycleLastUpdate>×&nbsp;ms</span>
+                <span #macroTickLastUpdate>×&nbsp;ms</span>
                 <span>Field discrepancy</span>
-                <span #longCycleDiscrepancy>×&nbsp;μs</span>
+                <span #macroTickDiscrepancy>×&nbsp;μs</span>
                 <span>Singular discrepancy</span>
                 <span>×&nbsp;μs</span>
                 <span>Overall discrepancy</span>
@@ -25,15 +25,15 @@
             <div>
                 <span><svg-icon src="assets/icon/large.svg"></svg-icon> Micro Timeframe</span>
                 <span>Current Tick</span>
-                <span #shortCycle>×</span>
+                <span #microTick>×</span>
                 <span>Ticks since startup</span>
-                <span>10.000&nbsp;&nbsp;t</span>
+                <span #microTicksSinceStart>×</span>
                 <span>Tick occurrence</span>
                 <span>10.000 μs</span>
                 <span>Since last tick</span>
-                <span #shortCycleLastUpdate>×&nbsp;μs</span>
+                <span #microTickLastUpdate>×&nbsp;μs</span>
                 <span>Field discrepancy</span>
-                <span #shortCycleDiscrepancy>×&nbsp;μs</span>
+                <span #microTickDiscrepancy>×&nbsp;μs</span>
                 <span>Singular discrepancy</span>
                 <span>×&nbsp;μs</span>
                 <span>Overall discrepancy</span>
@@ -51,7 +51,7 @@
         <span>Active devices</span>
 
         <div class="devices">
-            <div *ngFor="let device of activeDevices">
+            <div *ngFor="let device of activeDevices; trackBy: trackByDevice">
 
                 <svg-icon [src]="'assets/device/' + kebabCase(device.device) + '.svg'"></svg-icon>
 
@@ -107,7 +107,7 @@
                     </div>
 
                     <div>
-                        <button>
+                        <button (click)="configureDevice(device)">
                             <svg-icon src="assets/icon/settings.svg"></svg-icon>
                             <span>Settings</span>
                         </button>

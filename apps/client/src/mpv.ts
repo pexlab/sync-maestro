@@ -1,9 +1,11 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import net from 'net';
+import * as os from 'os';
+import * as path from 'path';
 import { filter, Observable, Subject, take } from 'rxjs';
 import { logClient, logSocket } from './logger';
 
-class MPV {
+export class MPV {
     
     public socket?: net.Socket;
     
@@ -15,11 +17,11 @@ class MPV {
     
     private lastRequestId = NaN;
     
-    constructor( path = '/tmp/mpv-socket-' + Math.random().toString( 36 ).substr( 2, 9 ) ) {
+    constructor() {
         
-        logSocket.debug( 'Path: ' + path );
+        this.socketPath = path.join( os.tmpdir(), 'mpv_socket' );
         
-        this.socketPath = path;
+        logSocket.debug( 'Socket Path: ' + this.socketPath );
         
         this.mpv = spawn( 'mpv', [
             '--input-ipc-server=' + this.socketPath,
@@ -153,6 +155,15 @@ class MPV {
     
     public async resume() {
         await this.execute( 'set_property', 'pause', false );
+    }
+    
+    public async currentTime() {
+        const { data } = await this.execute( 'get_property', 'time-pos' );
+        return data;
+    }
+    
+    public scrub( absoluteTimeInSec: number ) {
+        return this.execute( 'seek', String( absoluteTimeInSec ), 'absolute' );
     }
     
     public observeProperty<T>( property: string ): Observable<T> {

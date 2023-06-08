@@ -1,9 +1,10 @@
 import { ZGreeting } from '@sync-maestro/shared-interfaces';
-import { FindFirstLan4 } from '@sync-maestro/shared-utils';
 import Bonjour from 'bonjour-service';
 import * as macaddress from 'macaddress';
 import { z } from 'zod';
 import { communicationService, logCommunication } from './communication';
+import { FindFirstLan4 } from './network.util';
+import { Obeyer } from './obeyer';
 
 class SyncMaestroClient {
     
@@ -11,6 +12,7 @@ class SyncMaestroClient {
     private browser = this.bonjour.find( {
         type: 'sync-maestro-instructor'
     } );
+    private obeyer  = new Obeyer();
     
     public findInstructorLoopInterval?: NodeJS.Timer;
     
@@ -82,11 +84,11 @@ class SyncMaestroClient {
             const address = FindFirstLan4( service.addresses ?? [] );
             
             if ( !address ) {
-                logCommunication.error( 'A discovered bonjour service has no address' );
+                logCommunication.error( 'A discovered instructor has no address' );
                 return;
             }
             
-            logCommunication.log( 'Discovered a sync-maestro-instructor service at ' + address );
+            logCommunication.log( 'Discovered a instructor at ' + address );
             
             communicationService.setServer( address + ':' + service.port );
             
@@ -95,44 +97,3 @@ class SyncMaestroClient {
 }
 
 export const syncMaestroClient = new SyncMaestroClient();
-
-// const mpv = new MPV();
-//
-// mpv.connect().then( () => {
-//
-//     mpv.messages.subscribe( ( message ) => {
-//
-//         if ( message.event && typeof message.event === 'string' ) {
-//
-//             if ( message.event === 'property-change' ) {
-//                 return;
-//             }
-//
-//             logMPV.debug( message.event );
-//
-//         } else if ( message.request_id === undefined ) {
-//             logMPV.debug( message );
-//         }
-//     } );
-//
-//     mpv.play( path.join( process.cwd(), 'demo.mp4' ) ).then( () => {
-//
-//         mpv.pause().then( () => {
-//             mpv.execute( 'seek', '200', 'absolute' ).then();
-//         } );
-//
-//         const ttl = new SerialPort( {
-//             path    : '/dev/tty.usbserial-FTAQEW6P',
-//             baudRate: 9600
-//         } );
-//
-//         ttl.on( 'data', function( data ) {
-//
-//             console.log( data[ 0 ] );
-//
-//             if ( data[ 0 ] % 30 === 1 ) {
-//                 mpv.resume().then();
-//             }
-//         } );
-//     } );
-// } );

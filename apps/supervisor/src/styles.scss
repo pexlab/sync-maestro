@@ -72,3 +72,8 @@ button {
 	outline : 1px dotted rgba(lightgrey, .7);
   }
 }
+
+::selection {
+  color: black;
+  background: darkgreen;
+}
