@@ -3,10 +3,13 @@
     "version": "0.0.1",
     "license": "MIT",
     "scripts": {
-        "client": "nx serve client",
-        "instructor": "nx serve instructor",
-        "supervisor": "nx serve supervisor",
-        "build-client": "nx build client && pkg package.json"
+        "client": "nx build client && node dist/apps/client/main.js",
+        "instructor": "nx build instructor && node dist/apps/instructor/main.js",
+        "supervisor": "nx build supervisor && node dist/apps/supervisor/main.js",
+        "serve-client": "nx serve client",
+        "serve-instructor": "nx serve instructor",
+        "serve-supervisor": "nx serve supervisor",
+        "bundle-client": "nx build client && pkg package.json"
     },
     "pkg": {
         "assets": [

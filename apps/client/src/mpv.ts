@@ -4,6 +4,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { filter, Observable, Subject, take } from 'rxjs';
 import { logClient, logSocket } from './logger';
+import process from "process";
 
 export class MPV {
     
@@ -20,8 +21,8 @@ export class MPV {
         this.socketPath = path.join( os.tmpdir(), 'mpv_socket' );
         
         logSocket.debug( 'Socket Path: ' + this.socketPath );
-        
-        this.mpv = spawn( 'mpv', [
+
+        this.mpv = spawn(  path.join(process.cwd(), 'binary', 'mpv.exe'), [
             '--input-ipc-server=' + this.socketPath,
             '--force-window',
             '--idle',
@@ -86,13 +87,6 @@ export class MPV {
                                     }
                                 }
                             );
-                        }
-                    );
-                    
-                    ipc.of.world.on(
-                        'error',
-                        err => {
-                            logSocket.error( [ 'Error connecting to socket: ', err ] );
                         }
                     );
                 }
