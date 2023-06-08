@@ -17,6 +17,10 @@ export class Instructor{
     this.loadPlaylistsFromFile(path.join(process.cwd(), 'apps', 'instructor', 'src', 'assets', 'playlist.json'))
     this.setCurrentPlaylist(0);
 
+    /*const inst = this.prepare(this.current_playlist, this.current_playlist_begin, 1, 0, 0)
+
+    console.log(inst);*/
+
     const timer = new SimulateAdapter();
     timer.enable();
 
@@ -115,11 +119,24 @@ export class Instructor{
           at_micro_tick: remain,
           type: 'Video',
           media: {
-            state: 'Playing',
+            state: 'Paused',
             be_at: 0,
             url: media.file_path
           }
         })
+
+        m += 2;
+        micro_since_startup += 300;
+
+        let time = 0;
+        for (let i = 0; i < this.normalizeMediaIndex(this.current_playlist, current_media.media_index); i++) {
+          time += playlist.media[i].duration_micro;
+        }
+
+        micro_since_startup += 300;
+
+        current_playlist_begin = micro_since_startup - time;
+        continue;
       }
 
       micro_since_startup += 100;
