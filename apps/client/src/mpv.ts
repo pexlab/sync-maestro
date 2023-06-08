@@ -1,12 +1,13 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import ipc from 'node-ipc';
+import net from 'net';
 import * as os from 'os';
 import * as path from 'path';
 import { filter, Observable, Subject, take } from 'rxjs';
 import { logClient, logSocket } from './logger';
-import process from "process";
 
 export class MPV {
+    
+    public socket?: net.Socket;
     
     public socketPath: string;
     public mpv?: ChildProcessWithoutNullStreams;
@@ -21,8 +22,8 @@ export class MPV {
         this.socketPath = path.join( os.tmpdir(), 'mpv_socket' );
         
         logSocket.debug( 'Socket Path: ' + this.socketPath );
-
-        this.mpv = spawn(  path.join(process.cwd(), 'binary', 'mpv.exe'), [
+        
+        this.mpv = spawn(  process.platform === "win32" ? path.join(process.cwd(), 'binary', 'mpv.exe') : "mpv", [
             '--input-ipc-server=' + this.socketPath,
             '--force-window',
             '--idle',
@@ -42,59 +43,64 @@ export class MPV {
     
     async connect() {
         
-        return new Promise<void>( ( resolve ) => {
+        logSocket.debug( 'Connecting...' );
+        
+        while ( !this.socket ) {
             
-            logSocket.debug( 'Connecting...' );
-            
-            ipc.config.id     = 'world';
-            ipc.config.retry  = 500;
-            ipc.config.silent = true;
-            
-            ipc.connectTo(
-                'world',
-                this.socketPath,
-                () => {
+            try {
+                
+                const socket = net.createConnection( this.socketPath );
+                
+                await new Promise<void>( ( resolve, reject ) => {
                     
-                    ipc.of.world.on(
-                        'connect',
-                        () => {
+                    socket.on( 'connect', () => {
+                        
+                        logSocket.log( 'Connected' );
+                        
+                        this.socket = socket;
+                        
+                        this.socket.on( 'data', ( data ) => {
                             
-                            logSocket.log( 'Connected' );
+                            const messages = data.toString().split( '\n' ).filter( Boolean );
                             
-                            resolve();
-                            
-                            ipc.of.world.on(
-                                'data',
-                                data => {
+                            for ( const message of messages ) {
+                                
+                                try {
                                     
-                                    const messages = data.toString().split( '\n' ).filter( Boolean );
+                                    const messageObject = JSON.parse( message );
                                     
-                                    for ( const message of messages ) {
-                                        
-                                        try {
-                                            
-                                            const messageObject = JSON.parse( message );
-                                            
-                                            this.messages.next( messageObject );
-                                            
-                                            if ( messageObject.event && typeof messageObject.event === 'string' ) {
-                                                this.events.next( messageObject.event );
-                                            }
-                                            
-                                        } catch ( e ) {
-                                            logSocket.error( [ 'Error parsing message: ', message ] );
-                                        }
+                                    this.messages.next( messageObject );
+                                    
+                                    if ( messageObject.event && typeof messageObject.event === 'string' ) {
+                                        this.events.next( messageObject.event );
                                     }
+                                    
+                                } catch ( e ) {
+                                    logSocket.error( [ 'Error parsing message: ', message ] );
                                 }
-                            );
-                        }
-                    );
-                }
-            );
-        } );
+                            }
+                        } );
+                        
+                        resolve();
+                    } );
+                    
+                    socket.on( 'error', ( err ) => {
+                        reject( err );
+                    } );
+                    
+                } );
+                
+            } catch ( ignored ) {
+                /* Retry until success */
+            }
+        }
     }
     
     public execute<T>( command: string, ...params: unknown[] ): Promise<{ took: number, data: T }> {
+        
+        if ( !this.socket ) {
+            throw new Error( 'Socket not connected' );
+        }
         
         const id = isNaN( this.lastRequestId ) ? this.lastRequestId = 0 : ++this.lastRequestId;
         
@@ -103,7 +109,7 @@ export class MPV {
             command   : [ command, ...params ]
         };
         
-        ipc.of.world.emit(
+        this.socket.write(
             JSON.stringify( message ) +
             '\n'
         );

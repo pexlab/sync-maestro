@@ -7,6 +7,7 @@ import { SvgIconRegistryService } from 'angular-svg-icon';
 import capitalize from 'just-capitalize';
 import kebabCase from 'just-kebab-case';
 import { z } from 'zod';
+import { WebUARTAdapter } from '../../../../libs/shared-utils/src/lib/timer/uart-web.timer';
 import { DeviceSettingsDialogComponent } from '../device-settings-dialog/device-settings-dialog.component';
 
 @Component( {
@@ -48,7 +49,7 @@ export class AppComponent implements AfterViewInit {
     
     public activeDevices: z.infer<typeof ZRegisteredDevice>[] = [];
     
-    public timer = new SimulateAdapter();
+    public timer = new WebUARTAdapter();
     
     constructor(
         private iconReg: SvgIconRegistryService,
@@ -144,8 +145,6 @@ export class AppComponent implements AfterViewInit {
     }
     
     public ngAfterViewInit(): void {
-        
-        this.timer.enable();
         
         this.updateLoop();
         

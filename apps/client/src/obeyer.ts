@@ -1,6 +1,7 @@
 import { ZCommand } from '@sync-maestro/shared-interfaces';
 import { SimulateAdapter } from '@sync-maestro/shared-utils';
 import { z } from 'zod';
+import { UARTAdapter } from '../../../libs/shared-utils/src/lib/timer/uart.timer';
 import { logMPV } from './logger';
 import { MPV } from './mpv';
 
@@ -8,7 +9,7 @@ export class Obeyer {
     
     private mpv = new MPV();
     
-    private timer = new SimulateAdapter();
+    private timer = new UARTAdapter('/dev/cu.usbserial-5');
     
     public commands: z.infer<typeof ZCommand>[] = [];
     

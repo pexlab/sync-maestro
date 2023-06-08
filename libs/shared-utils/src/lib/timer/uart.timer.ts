@@ -4,6 +4,13 @@ import { SerialPort } from 'serialport';
 
 export class UARTAdapter implements Timer {
     
+    constructor(serial: string) {
+        this.ttl = new SerialPort( {
+            path    : serial,
+            baudRate: 9600
+        } );
+    }
+    
     public onTick      = new Subject<void>;
     public onMacroTick = new Subject<{ tick: number; ticks_since_startup: number }>;
     public onMicroTick = new Subject<{ tick: number; ticks_since_startup: number }>;
@@ -15,10 +22,7 @@ export class UARTAdapter implements Timer {
     private _macroTicksSinceStartup = 0;
     private _microTicksSinceStartup = 0;
     
-    private ttl = new SerialPort( {
-        path    : '/dev/tty.usbserial-FTAQEW6P',
-        baudRate: 9600
-    } );
+    private ttl;
     
     public get currentMacroTick(): number {
         return this._macroTick;
@@ -64,13 +68,13 @@ export class UARTAdapter implements Timer {
                 
                 cycles++;
                 
-                if(cycles === 100) {
-                    clearInterval(interval);
+                if ( cycles === 100 ) {
+                    clearInterval( interval );
                 }
                 
-            }, 10);
+            }, 10 );
             
-            this._macroTick = Number(data.toString());
+            this._macroTick = Number( data.toString() );
             this._macroTicksSinceStartup++;
             
             this.onMacroTick.next( {

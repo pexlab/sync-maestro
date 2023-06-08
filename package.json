@@ -8,7 +8,7 @@
         "supervisor": "nx build supervisor && node dist/apps/supervisor/main.js",
         "serve-client": "nx serve client",
         "serve-instructor": "nx serve instructor",
-        "serve-supervisor": "nx serve supervisor",
+        "serve-supervisor": "nx serve supervisor --ssl",
         "bundle-client": "nx build client && pkg package.json"
     },
     "pkg": {
