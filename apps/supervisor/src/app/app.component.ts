@@ -149,11 +149,11 @@ export class AppComponent implements AfterViewInit {
         
         this.updateLoop();
         
-        this.timer.macroTick.subscribe( ( tick ) => {
+        this.timer.onMacroTick.subscribe( ( tick ) => {
             this.lastMacroUpdate = performance.now();
         } );
         
-        this.timer.microTick.subscribe( ( tick ) => {
+        this.timer.onMicroTick.subscribe( ( tick ) => {
             this.lastMicroUpdate = performance.now();
         } );
         

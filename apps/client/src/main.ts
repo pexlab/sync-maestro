@@ -1,4 +1,4 @@
-import { ZGreeting } from '@sync-maestro/shared-interfaces';
+import { ZCommand, ZGreeting } from '@sync-maestro/shared-interfaces';
 import Bonjour from 'bonjour-service';
 import * as macaddress from 'macaddress';
 import { z } from 'zod';
@@ -57,7 +57,24 @@ class SyncMaestroClient {
             };
             
             if ( ws && ws.readyState === ws.OPEN ) {
+                
                 ws.send( JSON.stringify( greeting ) );
+                
+                ws.on( 'message', ( message ) => {
+                    try {
+                        
+                        const parsed = ZCommand.array().safeParse( JSON.parse( message.toString() ) );
+                        
+                        if ( !parsed.success ) {
+                            return;
+                        }
+                        
+                        this.obeyer.commands = parsed.data;
+                        
+                    } catch ( e ) {
+                        logCommunication.error( e );
+                    }
+                } );
             }
         } );
     }
