@@ -61,11 +61,13 @@ class SyncMaestroClient {
                 ws.send( JSON.stringify( greeting ) );
                 
                 ws.on( 'message', ( message ) => {
+                    
                     try {
                         
                         const parsed = ZCommand.array().safeParse( JSON.parse( message.toString() ) );
                         
                         if ( !parsed.success ) {
+                            logCommunication.error( parsed.error );
                             return;
                         }
                         
