@@ -2,15 +2,16 @@ import { ZGreeting } from '@sync-maestro/shared-interfaces';
 import Bonjour from 'bonjour-service';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { v4 } from 'uuid';
-import { WebSocketServer } from 'ws';
+import { WebSocket, WebSocketServer } from 'ws';
 import { log } from '../logger';
 
 export class SocketService {
     
-    public server   = new WebSocketServer( { port: 3001 } );
-    public bonjour  = new Bonjour();
+    public server  = new WebSocketServer( { port: 3001 } );
+    public bonjour = new Bonjour();
     
-    private clients = new Map<string, string | undefined>();
+    private clientIdentifierMap = new Map<string, string | undefined>();
+    private clientMap           = new Map<string, WebSocket>();
     
     public readonly clientsSubject = new BehaviorSubject( [] as string[] );
     
@@ -32,13 +33,15 @@ export class SocketService {
             const uid = v4();
             let identifier: string | undefined;
             
-            this.clients.set( uid, undefined );
+            this.clientIdentifierMap.set( uid, undefined );
             
             const greetTimeout = setTimeout( () => {
                 
                 log.error( `Client ${ uid } did not send a greeting in time. Closing connection.` );
                 
-                this.clients.delete( uid );
+                this.clientIdentifierMap.delete( uid );
+                this.clientMap.delete( uid );
+                
                 this.updateClients();
                 
                 client.close();
@@ -55,7 +58,9 @@ export class SocketService {
                     
                     identifier = parsed.data.identifier;
                     
-                    this.clients.set( uid, identifier );
+                    this.clientIdentifierMap.set( uid, identifier );
+                    this.clientMap.set( uid, client );
+                    
                     this.updateClients();
                     
                     this.clientConnected.next( identifier );
@@ -67,7 +72,9 @@ export class SocketService {
                 
                 log.log( `Client ${ uid } disconnected` );
                 
-                this.clients.delete( uid );
+                this.clientIdentifierMap.delete( uid );
+                this.clientMap.delete( uid );
+                
                 this.updateClients();
                 
                 if ( identifier ) {
@@ -75,6 +82,19 @@ export class SocketService {
                 }
             } );
         } );
+    }
+    
+    public sendAll( message: Record<string, any> ) {
+        this.clientMap.forEach( ( client ) => {
+            client.send( JSON.stringify( message ) );
+        } );
+    }
+    
+    public sendClient( identifier: string, message: Record<string, any> ) {
+        const client = Array.from( this.clientIdentifierMap.entries() ).find( ( [ , value ] ) => value === identifier );
+        if ( client ) {
+            this.clientMap.get( client[ 0 ] )?.send( JSON.stringify( message ) );
+        }
     }
     
     public async close() {
@@ -88,7 +108,7 @@ export class SocketService {
     }
     
     private updateClients() {
-        this.clientsSubject.next( Array.from( this.clients.values() ).filter( ( value ) => value !== undefined ) as string[] );
+        this.clientsSubject.next( Array.from( this.clientIdentifierMap.values() ).filter( ( value ) => value !== undefined ) as string[] );
     }
 }
 

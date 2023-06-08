@@ -1,5 +1,40 @@
 import { z } from 'zod';
 
+export const ZCommand = z.object( {
+    at_macro_tick: z.number(),
+    at_micro_tick: z.number(),
+    type : z.enum( [ 'Video' ] ),
+    media: z.object( {
+        state: z.enum( [ 'Playing', 'Paused' ] ),
+        url  : z.string(),
+        be_at: z.number()
+    } )
+} );
+
+export const ZTransformedCommand = z.union( [
+    
+    z.object( {
+        action       : z.literal( 'load_url_pause_and_seek' ),
+        at_macro_tick: z.number(),
+        at_micro_tick: z.number(),
+        url          : z.string(),
+        to_position  : z.number()
+    } ),
+    
+    z.object( {
+        action       : z.literal( 'pause_and_seek' ),
+        at_macro_tick: z.number(),
+        at_micro_tick: z.number(),
+        to_position  : z.number()
+    } ),
+    
+    z.object( {
+        action       : z.literal( 'resume' ),
+        at_macro_tick: z.number(),
+        at_micro_tick: z.number()
+    } )
+] );
+
 export const ZGreeting = z.object( {
     type: z.literal( 'Greeting' ),
     data: z.object( {
