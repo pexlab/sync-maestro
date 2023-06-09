@@ -19,7 +19,7 @@ export class MPV {
     
     constructor() {
         
-        this.socketPath = path.join( os.tmpdir(), 'mpv_socket' );
+        this.socketPath = path.join(process.platform === 'win32' ? '//./pipe' : '', os.tmpdir(), 'mpv_socket' );
         
         logSocket.debug( 'Socket Path: ' + this.socketPath );
         
