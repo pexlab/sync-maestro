@@ -9,6 +9,7 @@ import { CommunicationService } from './communication';
 import { logCommunication } from './logger';
 import { FindFirstLan4 } from './network.util';
 import { Obeyer } from './obeyer';
+import YAML from 'yaml';
 
 class SyncMaestroClient {
     
@@ -145,7 +146,7 @@ const bootstrap = async () => {
                 choices: ports.map( ( port ) => {
                     return {
                         name       : port.path,
-                        description: port.manufacturer,
+                        description: '\n<-- Information about that port -->\n\n' + YAML.stringify( port ),
                         value      : port.path
                     };
                 } )
