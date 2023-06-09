@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import process from "process";
-import { UARTAdapter } from '../../../../libs/shared-utils/src/lib/timer/uart.timer';
+import { SerialTimer } from '../../../../libs/shared-utils/src/lib/timer/serial.timer';
 import {IClientInstruction, IPlaylist, ZPlaylist} from "./playlist.interface";
 import {SimulateAdapter} from "@sync-maestro/shared-utils";
 import {socketService} from "./services/socket.service";
@@ -22,7 +22,7 @@ export class Instructor{
 
     console.log(inst);*/
 
-    const timer = new UARTAdapter('/dev/cu.usbserial-0001');
+    const timer = new SerialTimer('/dev/cu.usbserial-0001');
     timer.enable();
 
     timer.onMacroTick.subscribe(value => {

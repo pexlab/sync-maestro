@@ -1,7 +1,7 @@
 import { Timer } from '@sync-maestro/shared-interfaces';
 import { Subject } from 'rxjs';
 
-export class WebUARTAdapter implements Timer {
+export class WebSerialTimer implements Timer {
     
     public onTick      = new Subject<void>;
     public onMacroTick = new Subject<{ tick: number; ticks_since_startup: number }>;

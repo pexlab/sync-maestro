@@ -12,7 +12,7 @@ export class AppController implements OnModuleDestroy, OnModuleInit {
     }
     
     public onModuleInit(): any {
-        new Instructor();
+        //new Instructor();
     }
     
     @Get( 'devices' )

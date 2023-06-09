@@ -3,14 +3,14 @@ import net from 'net';
 import * as os from 'os';
 import * as path from 'path';
 import { filter, Observable, Subject, take } from 'rxjs';
-import { logClient, logSocket } from './logger';
+import { logMpvIpc, logMpvProcess } from './logger';
 
 export class MPV {
     
-    public socket?: net.Socket;
+    public ipcPath: string;
     
-    public socketPath: string;
-    public mpv?: ChildProcessWithoutNullStreams;
+    public mpvIpc?: net.Socket;
+    public mpvProcess?: ChildProcessWithoutNullStreams;
     
     public readonly messages = new Subject<Record<string, any>>();
     public readonly events   = new Subject<string>();
@@ -19,12 +19,14 @@ export class MPV {
     
     constructor() {
         
-        this.socketPath = path.join(process.platform === 'win32' ? '//./pipe' : '', os.tmpdir(), 'mpv_socket' );
+        this.ipcPath = path.join( process.platform === 'win32' ? '//./pipe' : '', os.tmpdir(), 'sync_maestro_mpv.sock' );
         
-        logSocket.debug( 'Socket Path: ' + this.socketPath );
+        logMpvIpc.log( 'Path: ' + this.ipcPath );
         
-        this.mpv = spawn(  process.platform === "win32" ? path.join(process.cwd(), 'binary', 'mpv.exe') : "mpv", [
-            '--input-ipc-server=' + this.socketPath,
+        logMpvProcess.log( 'Starting...' );
+        
+        this.mpvProcess = spawn( process.platform === 'win32' ? path.join( process.cwd(), 'binary', 'mpv.exe' ) : 'mpv', [
+            '--input-ipc-server=' + this.ipcPath,
             '--force-window',
             '--idle',
             '--profile=low-latency',
@@ -35,31 +37,31 @@ export class MPV {
             '--msg-level=all=warn,ao/alsa=error'
         ], {} );
         
-        this.mpv.on( 'close', ( code ) => {
-            logClient.error( `MPV process exited with code ${ code }` );
-            this.mpv = undefined;
+        this.mpvProcess.on( 'close', ( code ) => {
+            logMpvProcess.error( `Exited with code ${ code }` );
+            this.mpvProcess = undefined;
         } );
     }
     
     async connect() {
         
-        logSocket.debug( 'Connecting...' );
+        logMpvIpc.log( 'Connecting...' );
         
-        while ( !this.socket ) {
+        while ( !this.mpvIpc ) {
             
             try {
                 
-                const socket = net.createConnection( this.socketPath );
+                const socket = net.createConnection( this.ipcPath );
                 
                 await new Promise<void>( ( resolve, reject ) => {
                     
                     socket.on( 'connect', () => {
                         
-                        logSocket.log( 'Connected' );
+                        logMpvIpc.log( 'Connected' );
                         
-                        this.socket = socket;
+                        this.mpvIpc = socket;
                         
-                        this.socket.on( 'data', ( data ) => {
+                        this.mpvIpc.on( 'data', ( data ) => {
                             
                             const messages = data.toString().split( '\n' ).filter( Boolean );
                             
@@ -76,7 +78,7 @@ export class MPV {
                                     }
                                     
                                 } catch ( e ) {
-                                    logSocket.error( [ 'Error parsing message: ', message ] );
+                                    logMpvIpc.error( [ 'Error parsing message: ', message ] );
                                 }
                             }
                         } );
@@ -98,7 +100,7 @@ export class MPV {
     
     public execute<T>( command: string, ...params: unknown[] ): Promise<{ took: number, data: T }> {
         
-        if ( !this.socket ) {
+        if ( !this.mpvIpc ) {
             throw new Error( 'Socket not connected' );
         }
         
@@ -109,7 +111,7 @@ export class MPV {
             command   : [ command, ...params ]
         };
         
-        this.socket.write(
+        this.mpvIpc.write(
             JSON.stringify( message ) +
             '\n'
         );

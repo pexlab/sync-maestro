@@ -2,12 +2,12 @@ import { Timer } from '@sync-maestro/shared-interfaces';
 import { Subject } from 'rxjs';
 import { SerialPort } from 'serialport';
 
-export class UARTAdapter implements Timer {
+export class SerialTimer implements Timer {
     
     constructor(serial: string) {
         this.ttl = new SerialPort( {
             path    : serial,
-            baudRate: 9600
+            baudRate: 9600,
         } );
     }
     

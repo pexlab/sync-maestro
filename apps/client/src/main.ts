@@ -1,8 +1,12 @@
-import { ZCommand, ZGreeting } from '@sync-maestro/shared-interfaces';
+import { select } from '@inquirer/prompts';
+import { Timer, ZCommand, ZGreeting } from '@sync-maestro/shared-interfaces';
+import { EmptyTimer, SerialTimer } from '@sync-maestro/shared-utils';
 import Bonjour from 'bonjour-service';
 import * as macaddress from 'macaddress';
+import { SerialPort } from 'serialport';
 import { z } from 'zod';
-import { communicationService, logCommunication } from './communication';
+import { CommunicationService } from './communication';
+import { logCommunication } from './logger';
 import { FindFirstLan4 } from './network.util';
 import { Obeyer } from './obeyer';
 
@@ -115,4 +119,50 @@ class SyncMaestroClient {
     }
 }
 
-export const syncMaestroClient = new SyncMaestroClient();
+export let communicationService!: CommunicationService;
+export let syncMaestroClient!: SyncMaestroClient;
+export let timer!: Timer;
+
+const bootstrap = async () => {
+    
+    const timerType = await select( {
+        message: 'Select a timer type',
+        choices: [
+            { name: 'Serial', value: 'Serial' },
+            { name: 'Network', value: 'Network' },
+            { name: 'None', value: 'None' }
+        ]
+    } );
+    
+    switch ( timerType ) {
+        
+        case 'Serial': {
+            
+            const ports = await SerialPort.list();
+            
+            const port = await select( {
+                message: 'Select a port',
+                choices: ports.map( ( port ) => {
+                    return {
+                        name       : port.path,
+                        description: port.manufacturer,
+                        value      : port.path
+                    };
+                } )
+            } );
+            
+            timer = new SerialTimer( port );
+            
+            break;
+        }
+        
+        default:
+            timer = new EmptyTimer();
+            break;
+    }
+    
+    communicationService = new CommunicationService();
+    syncMaestroClient    = new SyncMaestroClient();
+};
+
+bootstrap().then();
