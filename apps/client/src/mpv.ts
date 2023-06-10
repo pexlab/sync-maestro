@@ -2,8 +2,10 @@ import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import net from 'net';
 import * as os from 'os';
 import * as path from 'path';
+import * as process from 'process';
 import { filter, Observable, Subject, take } from 'rxjs';
 import { logMpvIpc, logMpvProcess } from './logger';
+import { videoShaders } from './main';
 
 export class MPV {
     
@@ -25,16 +27,23 @@ export class MPV {
         
         logMpvProcess.log( 'Starting...' );
         
+        logMpvProcess.log( 'Video shaders active: ' + ( videoShaders.length > 0 ? ( '\n• ' + videoShaders.join( ',\n• ' ) ) : 'None' ) );
+        
+        const shaders = videoShaders.map( shader => path.join( process.cwd(), 'resources', 'shaders', shader ) ).map( path => '--glsl-shader=' + path );
+        
         this.mpvProcess = spawn( process.platform === 'win32' ? path.join( process.cwd(), 'binary', 'mpv.exe' ) : 'mpv', [
             '--input-ipc-server=' + this.ipcPath,
             '--force-window',
             '--idle',
-            '--profile=low-latency',
+            '--profile=gpu-hq',
             '--screen=1',
             '--no-border',
             '--no-msg-color',
             '--term-osd=no',
-            '--msg-level=all=warn,ao/alsa=error'
+            '--msg-level=all=warn,ao/alsa=error',
+            '--audio=no',
+            '--keep-open=yes',
+            ...shaders
         ], {} );
         
         this.mpvProcess.on( 'close', ( code ) => {

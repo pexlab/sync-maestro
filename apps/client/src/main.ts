@@ -4,12 +4,13 @@ import { EmptyTimer, SerialTimer } from '@sync-maestro/shared-utils';
 import Bonjour from 'bonjour-service';
 import * as macaddress from 'macaddress';
 import { SerialPort } from 'serialport';
+import YAML from 'yaml';
 import { z } from 'zod';
 import { CommunicationService } from './communication';
 import { logCommunication } from './logger';
 import { FindFirstLan4 } from './network.util';
 import { Obeyer } from './obeyer';
-import YAML from 'yaml';
+import { Anime4K } from './shaders';
 
 class SyncMaestroClient {
     
@@ -123,6 +124,7 @@ class SyncMaestroClient {
 export let communicationService!: CommunicationService;
 export let syncMaestroClient!: SyncMaestroClient;
 export let timer!: Timer;
+export let videoShaders!: string[];
 
 const bootstrap = async () => {
     
@@ -161,6 +163,25 @@ const bootstrap = async () => {
             timer = new EmptyTimer();
             break;
     }
+    
+    videoShaders = await select( {
+        message: 'Select a video shader',
+        choices: [
+            { name: 'None', value: [] },
+            { name: 'Anime4K Low-End A', value: Anime4K.LowEnd.A },
+            { name: 'Anime4K Low-End B', value: Anime4K.LowEnd.B },
+            { name: 'Anime4K Low-End C', value: Anime4K.LowEnd.C },
+            { name: 'Anime4K Low-End A + A', value: Anime4K.LowEnd.AA },
+            { name: 'Anime4K Low-End B + B', value: Anime4K.LowEnd.BB },
+            { name: 'Anime4K Low-End C + A', value: Anime4K.LowEnd.CA },
+            { name: 'Anime4K High-End A', value: Anime4K.HighEnd.A },
+            { name: 'Anime4K High-End B', value: Anime4K.HighEnd.B },
+            { name: 'Anime4K High-End C', value: Anime4K.HighEnd.C },
+            { name: 'Anime4K High-End A + A', value: Anime4K.HighEnd.AA },
+            { name: 'Anime4K High-End B + B', value: Anime4K.HighEnd.BB },
+            { name: 'Anime4K High-End C + A', value: Anime4K.HighEnd.CA }
+        ]
+    } );
     
     communicationService = new CommunicationService();
     syncMaestroClient    = new SyncMaestroClient();
