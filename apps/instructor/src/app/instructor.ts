@@ -31,6 +31,7 @@ export class Instructor {
             
             if ( this._paused || this._wait_for_take_off ) {
                 this._current_media_begin++;
+                return;
             }
             
             const current_media = this.current_playlist.media[ this._current_media_index ];
@@ -58,6 +59,7 @@ export class Instructor {
         const resume_offset = macro - micro;
         
         this._current_media_begin -= resume_offset;
+        this._wait_for_take_off = false;
         
         for ( const [ mac, client ] of clientManagerService.clientList ) {
             //client.resume(resume_macro, resume_micro)
@@ -83,6 +85,8 @@ export class Instructor {
         if ( !this._paused ) {
             return;
         }
+        
+        this._paused = false;
         
         this.prepareForTakeOff();
     }
