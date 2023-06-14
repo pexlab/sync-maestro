@@ -4,10 +4,10 @@ import { SerialPort } from 'serialport';
 
 export class SerialTimer implements Timer {
     
-    constructor(serial: string) {
+    constructor( serial: string ) {
         this.ttl = new SerialPort( {
             path    : serial,
-            baudRate: 9600,
+            baudRate: 9600
         } );
     }
     
@@ -52,7 +52,7 @@ export class SerialTimer implements Timer {
         
         this.ttl.on( 'data', ( data ) => {
             
-            this._macroTick = Number( data[0] );
+            this._macroTick = Number( data[ 0 ] );
             this._macroTicksSinceStartup++;
             
             this._microTick += 0;

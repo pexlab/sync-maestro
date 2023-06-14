@@ -1,167 +1,207 @@
-import fs from "fs";
-import path from "path";
-import process from "process";
-import { SerialTimer } from '../../../../libs/shared-utils/src/lib/timer/serial.timer';
-import {IClientInstruction, IPlaylist, ZPlaylist} from "./playlist.interface";
-import {SimulateAdapter} from "@sync-maestro/shared-utils";
-import {socketService} from "./services/socket.service";
-import {clientManagerService} from "./services/client-manager.service";
+import { IPlaylist, IState, Timer, ZPlaylist } from '@sync-maestro/shared-interfaces';
+import fs from 'fs';
+import path from 'path';
+import process from 'process';
+import { SerialTimer } from '@sync-maestro/shared-utils';
+import { clientManagerService } from './services/client-manager.service';
 
-export class Instructor{
-
-  private playlists: IPlaylist[] = [];
-
-  private current_playlist!: IPlaylist;
-  private current_playlist_begin = 0;
-
-  constructor() {
-    this.loadPlaylistsFromFile(path.join(process.cwd(), 'apps', 'instructor', 'src', 'assets', 'playlist.json'))
-    this.setCurrentPlaylist(0);
-
-    /*const inst = this.prepare(this.current_playlist, this.current_playlist_begin, 1, 0, 0)
-
-    console.log(inst);*/
-
-    const timer = new SerialTimer('/dev/cu.usbserial-0001');
-    timer.enable();
-
-    timer.onMacroTick.subscribe(value => {
-      const macro = value.tick;
-      const micro_since_startup = timer.currentMicroTickSinceStartup;
-
-      for (const [key, value] of clientManagerService.clientList) {
-
-        const instructions = this.prepare(this.current_playlist, this.current_playlist_begin, macro, micro_since_startup, value.offset);
+export class Instructor {
+    
+    private _timer!: Timer;
+    
+    private _playlists: IPlaylist[] = [];
+    
+    private _current_playlist!: IPlaylist;
+    
+    private _current_media_index = 0;
+    private _current_media_begin = 0;
+    
+    private _wait_for_take_off = false;
+    private _paused            = true;
+    
+    constructor() {
+        this.loadPlaylistsFromFile( path.join( process.cwd(), 'apps', 'instructor', 'src', 'assets', 'playlist.json' ) );
+        this.setCurrentPlaylist( 0 );
         
-        console.log(macro + ' ' + micro_since_startup);
-       // console.log(instructions);
+        this._timer = new SerialTimer( '/dev/cu.usbserial-0001' );
+        this._timer.enable();
         
-        socketService.sendClient(key, instructions);
-      }
-    })
-  }
-
-  private loadPlaylistsFromFile(path: string){
-    const data = fs.readFileSync(path, 'utf-8');
-
-    const json = JSON.parse(data);
-
-    this.playlists = ZPlaylist.array().parse(json.playlists);
-  }
-
-  private setCurrentPlaylist(id: number){
-    for (const playlist of this.playlists) {
-      if(playlist.id === id){
-        this.current_playlist = playlist;
-        return;
-      }
+        this._timer.onMicroTick.subscribe( value => {
+            const micro_since_startup = value.ticks_since_startup;
+            
+            if ( this._paused || this._wait_for_take_off ) {
+                this._current_media_begin++;
+            }
+            
+            const current_media = this.current_playlist.media[ this._current_media_index ];
+            
+            const media_runtime   = micro_since_startup - this._current_media_begin;
+            const media_remaining = current_media.duration_micro - media_runtime;
+            
+            if ( media_remaining <= 0 ) {
+                this.next();
+            }
+        } );
     }
-  }
-
-  private getCurrentMedia(playlist: IPlaylist, current_playlist_begin: number, current_micro_since_startup: number): {media_index: number, media_runtime: number, media_remaining: number}{
-    const playlist_runtime = current_micro_since_startup - current_playlist_begin;
-
-    let media_index = 0;
-    let media_runtime = 0;
-    let media_remaining = 0;
-
-    let time = 0;
-    for(;;media_index++){
-      const media = playlist.media[this.normalizeMediaIndex(playlist, media_index)];
-
-      if(time + media.duration_micro > playlist_runtime){
-        media_runtime = playlist_runtime - time;
-        media_remaining = media.duration_micro - media_runtime;
-        break;
-      }
-
-      time += media.duration_micro;
-    }
-
-    return {
-      media_index,
-      media_runtime,
-      media_remaining
-    }
-  }
-
-  private prepare(playlist: IPlaylist, current_playlist_begin: number, current_macro_tick: number, current_micro_since_startup: number, offset: number){
-
-    let micro_since_startup = current_micro_since_startup;
-
-    //offset in micro
-    let playlist_begin = current_playlist_begin - (offset / 10);
-
-    const instructions: IClientInstruction[] = [];
-
-    for (let m = current_macro_tick; m <= 254 + current_macro_tick - 1; m++) {
-      const macro = m > 254 ? (m - 254) : m;
-
-      let current_media = this.getCurrentMedia(playlist, playlist_begin, micro_since_startup);
-      let media = playlist.media[this.normalizeMediaIndex(playlist, current_media.media_index)];
-
-      instructions.push({
-        at_macro_tick: macro,
-        at_micro_tick: 0,
-        type: 'Video',
-        media: {
-          state: 'Playing',
-          be_at: current_media.media_runtime * 10 / 1000,
-          url: media.file_path
+    
+    private takeOff() {
+        if ( this._paused ) {
+            return;
         }
-      })
-
-      if(current_media.media_remaining < 100){
-        const remain = current_media.media_remaining;
-
-        current_media = this.getCurrentMedia(playlist, playlist_begin, micro_since_startup + current_media.media_remaining);
-        media = playlist.media[this.normalizeMediaIndex(playlist, current_media.media_index)];
-
-
-        instructions.push({
-          at_macro_tick: macro,
-          at_micro_tick: remain,
-          type: 'Video',
-          media: {
-            state: 'Paused',
-            be_at: 0,
-            url: media.file_path
-          }
-        })
-
-        m += 2;
-        micro_since_startup += 300;
-
-        let time = 0;
-        for (let i = 0; i < this.normalizeMediaIndex(this.current_playlist, current_media.media_index); i++) {
-          time += playlist.media[i].duration_micro;
-        }
-
-        micro_since_startup += 300;
         
-        playlist_begin = micro_since_startup - time;
-        continue;
-      }
-
-      micro_since_startup += 100;
+        const macro = this._timer.currentMacroTick;
+        const micro = this._timer.currentMicroTick;
+        
+        const resume_macro = this.normalizeMacro( macro + 2 );
+        const resume_micro = 0;
+        
+        const resume_offset = macro - micro;
+        
+        this._current_media_begin -= resume_offset;
+        
+        for ( const [ mac, client ] of clientManagerService.clientList ) {
+            //client.resume(resume_macro, resume_micro)
+        }
     }
-
-    return instructions;
-  }
-
-  private normalizeMediaIndex(playlist: IPlaylist, media_index: number) {
-    const media_length = playlist.media.length
-    const media_index_length = media_length - 1;
-
-    if (media_index > media_index_length) {
-      return (media_index % media_length);
+    
+    private prepareForTakeOff() {
+        const micro_since_startup = this._timer.currentMicroTickSinceStartup;
+        
+        const current_media = this.current_playlist.media[ this._current_media_index ];
+        
+        const media_runtime = micro_since_startup - this._current_media_begin;
+        const be_at         = media_runtime * 10;
+        
+        this._wait_for_take_off = true;
+        
+        for ( const [ mac, client ] of clientManagerService.clientList ) {
+            //client.pause(be_at, current_media.file_path)
+        }
     }
-
-    if (media_index < 0) {
-      return media_index_length + (media_index % media_length);
+    
+    public resume() {
+        if ( !this._paused ) {
+            return;
+        }
+        
+        this.prepareForTakeOff();
     }
-
-    return media_index;
-  }
-
+    
+    public pause() {
+        this._paused = true;
+        
+        for ( const [ mac, client ] of clientManagerService.clientList ) {
+            //client.pause()
+        }
+    }
+    
+    public next() {
+        this._current_media_begin = this._timer.currentMicroTickSinceStartup;
+        
+        this.setCurrentMediaIndex( this.current_media_index + 1 );
+        
+        if ( this._paused ) {
+            return;
+        }
+        
+        this.prepareForTakeOff();
+    }
+    
+    public prev() {
+        this._current_media_begin = this._timer.currentMicroTickSinceStartup;
+        
+        this.setCurrentMediaIndex( this.current_media_index - 1 );
+        
+        if ( this._paused ) {
+            return;
+        }
+        
+        this.prepareForTakeOff();
+    }
+    
+    public scrub( time: number ) {
+        const micro_since_startup = this._timer.currentMicroTickSinceStartup;
+        
+        const current_media = this.current_playlist.media[ this._current_media_index ];
+        
+        if ( time > current_media.duration ) {
+            return;
+        }
+        
+        const time_in_micro = time / 10;
+        
+        this._current_media_begin = micro_since_startup - time_in_micro;
+        
+        if ( this._paused ) {
+            return;
+        }
+        
+        this.prepareForTakeOff();
+    }
+    
+    private loadPlaylistsFromFile( path: string ) {
+        const data = fs.readFileSync( path, 'utf-8' );
+        
+        const json = JSON.parse( data );
+        
+        this._playlists = ZPlaylist.array().parse( json.playlists );
+    }
+    
+    private setCurrentPlaylist( id: number ) {
+        for ( const playlist of this._playlists ) {
+            if ( playlist.id === id ) {
+                this._current_playlist = playlist;
+                return;
+            }
+        }
+    }
+    
+    private normalizeMediaIndex( playlist: IPlaylist, media_index: number ) {
+        const media_length       = playlist.media.length;
+        const media_index_length = media_length - 1;
+        
+        if ( media_index > media_index_length ) {
+            return ( media_index % media_length );
+        }
+        
+        if ( media_index < 0 ) {
+            return media_index_length + ( media_index % media_length );
+        }
+        
+        return media_index;
+    }
+    
+    private normalizeMacro( macro: number ) {
+        return macro <= 254 ? macro : macro % 255 + 1;
+    }
+    
+    private setCurrentMediaIndex( index: number ) {
+        this._current_media_index = this.normalizeMediaIndex( this.current_playlist, index );
+    }
+    
+    public get current_playlist(): IPlaylist {
+        return this._current_playlist;
+    }
+    
+    public get current_media_index(): number {
+        return this._current_media_index;
+    }
+    
+    public get state(): IState {
+        if ( this._paused ) {
+            return 'Paused';
+        }
+        
+        if ( this._wait_for_take_off ) {
+            return 'WaitingForTakeOff';
+        }
+        
+        return 'Playing';
+    }
+    
+    public get media_runtime(): number {
+        const media_runtime = this._timer.currentMicroTickSinceStartup - this._current_media_begin;
+        
+        return media_runtime * 10;
+    }
 }

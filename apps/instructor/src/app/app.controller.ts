@@ -6,13 +6,9 @@ import { clientManagerService } from './services/client-manager.service';
 import { socketService } from './services/socket.service';
 
 @Controller()
-export class AppController implements OnModuleDestroy, OnModuleInit {
+export class AppController implements OnModuleDestroy {
     
     constructor() {
-    }
-    
-    public onModuleInit(): any {
-        //new Instructor();
     }
     
     @Get( 'devices' )
