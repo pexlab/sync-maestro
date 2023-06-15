@@ -50,6 +50,10 @@ export class Instructor {
             return;
         }
         
+        if(!this._wait_for_take_off){
+            return;
+        }
+        
         const macro = this._timer.currentMacroTick;
         const micro = this._timer.currentMicroTick;
         
