@@ -2,12 +2,13 @@ import { spawnSync } from 'child_process';
 import os from 'os';
 import path from 'path';
 import { z } from 'zod';
+import { Bazaar } from "../util/bazaar.util";
 
 export const ZMedia = z.object( {
     name     : z.string(),
     file_path: z.string()
 } ).transform( ( obj ) => {
-    
+
     const ffmpegArgs = [
         '-v', 'error',
         '-show_entries',
@@ -15,10 +16,14 @@ export const ZMedia = z.object( {
         '-of', 'default=noprint_wrappers=1:nokey=1',
         path.join( os.homedir(), obj.file_path )
     ];
-    
-    const duration       = +spawnSync( 'ffprobe', ffmpegArgs ).stdout.toString();
+
+    const duration       = +spawnSync(
+      Bazaar.isWindows ?
+      Bazaar.getResource( 'binary', 'ffprobe.exe' ) :
+      'ffprobe',
+      ffmpegArgs ).stdout.toString();
     const duration_micro = Math.round( duration * 1000 / 10 );
-    
+
     return {
         ...obj,
         duration,

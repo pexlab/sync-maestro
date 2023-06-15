@@ -5,6 +5,7 @@ import { Buffer } from 'node:buffer';
 import os from 'os';
 import path from 'path';
 import { z } from 'zod';
+import { Bazaar } from "./bazaar.util";
 
 let id = 0;
 
@@ -148,7 +149,12 @@ export function generateEqualized( input: Buffer | string, device: z.infer<typeo
     
     try {
         
-        const ffmpegProcess = spawn( 'ffmpeg', ffmpegArgs );
+        const ffmpegProcess = spawn(
+          Bazaar.isWindows ?
+          Bazaar.getResource( 'binary', 'ffmpeg.exe' ) :
+          'ffmpeg',
+           ffmpegArgs
+        );
         
         ffmpegProcess.stderr.on( 'data', ( data ) => {
             

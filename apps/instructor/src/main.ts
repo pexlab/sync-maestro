@@ -4,8 +4,9 @@ import { Timer } from '@sync-maestro/shared-interfaces';
 import { SerialPort } from 'serialport';
 import { SerialTimer } from 'shared-backend-utils';
 import YAML from 'yaml';
-
 import { AppModule } from './app/app.module';
+
+export const MainDirectory = __dirname;
 
 export let timer!: Timer;
 
