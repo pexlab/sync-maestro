@@ -37,13 +37,10 @@ export class MpvProcess {
                 'mpv',
                 [
                     '--idle',
-                    '--keep-open=yes',
-                    '--profile=gpu-hq',
                     '--screen=' + config.screen,
-                    '--force-window',
-                    '--no-border',
                     '--fullscreen',
-                    '--no-focus-on-open',
+                    '--no-audio',
+                    '--log-file=mpv.log',
                     '--input-ipc-server=' + config.ipc,
                     ...shaders
                 ]
