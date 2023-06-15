@@ -137,7 +137,7 @@ export class Obeyer {
         this.mpv = new MPV();
         
         this.mpv.initialize( {
-            screen: 1,
+            screen: 0,
             shaders
         } );
         
