@@ -14,6 +14,8 @@ export class WebSerialTimer implements Timer {
     private _macroTicksSinceStartup = 0;
     private _microTicksSinceStartup = 0;
     
+    private _lastSerialData!: number;
+    
     public get currentMacroTick(): number {
         return this._macroTick;
     }
@@ -48,43 +50,47 @@ export class WebSerialTimer implements Timer {
                 
                 const read = () => {
                     
-                    reader.read().then((result: any) => {
+                    reader.read().then((data: any) => {
                         
-                        if (result.done) {
+                        if (data.done) {
                             return;
                         }
                         
-                        let cycles = 0;
+                        const dataAsNumber = Number( data.value.toString() );
                         
-                        const interval = setInterval(() => {
+                        if ( this._lastSerialData
+                            && dataAsNumber != 0x00
+                            && dataAsNumber != 0xFF ) {
                             
-                            this._microTick = this._microTick === 99 ? 0 : this._microTick + 1;
-                            this._microTicksSinceStartup++;
-                            
-                            this.onMicroTick.next({
-                                tick               : this._microTick,
-                                ticks_since_startup: this._microTicksSinceStartup
-                            });
-                            
-                            this.onTick.next();
-                            
-                            cycles++;
-                            
-                            if (cycles === 100) {
-                                clearInterval(interval);
+                            //Macro Tick
+                            if ( this._lastSerialData === 0x00 ) {
+                                this._macroTick = dataAsNumber;
+                                this._macroTicksSinceStartup++;
+                                
+                                this._microTick = 0x00;
+                                
+                                this.onMacroTick.next( {
+                                    tick               : this._macroTick,
+                                    ticks_since_startup: this._macroTicksSinceStartup
+                                } );
                             }
                             
-                        }, 10);
+                            //Micro Tick
+                            if(this._lastSerialData === 0xFF){
+                                this._microTick = dataAsNumber - 1;
+                            }
+                            
+                            this._microTicksSinceStartup++;
+                            
+                            this.onMicroTick.next( {
+                                tick               : this._microTick,
+                                ticks_since_startup: this._microTicksSinceStartup
+                            } );
+                            
+                            this.onTick.next();
+                        }
                         
-                        this._macroTick = Number(result.value.toString());
-                        this._macroTicksSinceStartup++;
-                        
-                        this.onMacroTick.next({
-                            tick               : this._macroTick,
-                            ticks_since_startup: this._macroTicksSinceStartup
-                        });
-                        
-                        this.onTick.next();
+                        this._lastSerialData = dataAsNumber;
                         
                         read();
                         

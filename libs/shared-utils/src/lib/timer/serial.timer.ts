@@ -22,6 +22,8 @@ export class SerialTimer implements Timer {
     private _macroTicksSinceStartup = 0;
     private _microTicksSinceStartup = 0;
     
+    private _lastSerialData!: number;
+    
     private ttl;
     
     public get currentMacroTick(): number {
@@ -52,18 +54,41 @@ export class SerialTimer implements Timer {
         
         this.ttl.on( 'data', ( data ) => {
             
-            this._macroTick = Number( data[ 0 ] );
-            this._macroTicksSinceStartup++;
+            const dataAsNumber = Number( data[ 0 ] );
             
-            this._microTick += 0;
-            this._microTicksSinceStartup += 100;
+            if ( this._lastSerialData
+                && dataAsNumber != 0x00
+                && dataAsNumber != 0xFF ) {
+                
+                //Macro Tick
+                if ( this._lastSerialData === 0x00 ) {
+                    this._macroTick = dataAsNumber;
+                    this._macroTicksSinceStartup++;
+                    
+                    this._microTick = 0x00;
+                    
+                    this.onMacroTick.next( {
+                        tick               : this._macroTick,
+                        ticks_since_startup: this._macroTicksSinceStartup
+                    } );
+                }
+                
+                //Micro Tick
+                if(this._lastSerialData === 0xFF){
+                    this._microTick = dataAsNumber - 1;
+                }
+                
+                this._microTicksSinceStartup++;
+                
+                this.onMicroTick.next( {
+                    tick               : this._microTick,
+                    ticks_since_startup: this._microTicksSinceStartup
+                } );
+                
+                this.onTick.next();
+            }
             
-            this.onMacroTick.next( {
-                tick               : this._macroTick,
-                ticks_since_startup: this._macroTicksSinceStartup
-            } );
-            
-            this.onTick.next();
+            this._lastSerialData = dataAsNumber;
         } );
     }
     
