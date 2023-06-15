@@ -3,28 +3,14 @@
     "version": "0.0.1",
     "license": "MIT",
     "scripts": {
-        "client": "nx build client && node dist/apps/client/main.js",
-        "instructor": "nx build instructor && node dist/apps/instructor/main.js",
-        "supervisor": "nx build supervisor && node dist/apps/supervisor/main.js",
+        "client": "nx build client --skip-nx-cache && node dist/apps/client/main.js",
+        "instructor": "nx build instructor --skip-nx-cache && node dist/apps/instructor/main.js",
+        "supervisor": "nx build supervisor --skip-nx-cache && node dist/apps/supervisor/main.js",
         "serve-client": "nx serve client",
         "serve-instructor": "nx serve instructor",
         "serve-supervisor": "nx serve supervisor --ssl",
         "serve-debugger": "nx serve debugger",
-        "bundle-client": "nx build client && pkg package.json"
-    },
-    "pkg": {
-        "assets": [
-            "binary/**/*",
-            "dist/apps/client/**/*"
-        ],
-        "outputPath": "dist/binary/client",
-        "targets": [
-            "node18-macos-arm64",
-            "node18-win-arm64"
-        ]
-    },
-    "bin": {
-        "client": "dist/apps/client/main.js"
+        "bundle-client": "nx build client --skip-nx-cache && cd dist/apps/client && npm i && pkg main.js --output ../binary/client --targets node18-macos-arm64,node18-win-arm64 --assets resources/**/*"
     },
     "private": true,
     "dependencies": {

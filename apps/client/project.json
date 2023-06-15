@@ -1,63 +1,77 @@
 {
-  "name": "client",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/client/src",
-  "projectType": "application",
-  "targets": {
-    "build": {
-      "executor": "@nx/esbuild:esbuild",
-      "outputs": ["{options.outputPath}"],
-      "defaultConfiguration": "production",
-      "options": {
-        "platform": "node",
-        "outputPath": "dist/apps/client",
-        "format": ["cjs"],
-        "bundle": false,
-        "main": "apps/client/src/main.ts",
-        "tsConfig": "apps/client/tsconfig.app.json",
-        "assets": ["apps/client/src/assets"],
-        "generatePackageJson": true,
-        "esbuildOptions": {
-          "sourcemap": true,
-          "outExtension": {
-            ".js": ".js"
-          }
-        }
-      },
-      "configurations": {
-        "development": {},
-        "production": {
-          "esbuildOptions": {
-            "sourcemap": false,
-            "outExtension": {
-              ".js": ".js"
+    "name"       : "client",
+    "$schema"    : "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot" : "apps/client/src",
+    "projectType": "application",
+    "targets"    : {
+        "build": {
+            "executor"            : "@nx/esbuild:esbuild",
+            "outputs"             : [
+                "{options.outputPath}"
+            ],
+            "defaultConfiguration": "production",
+            "options"             : {
+                "platform"           : "node",
+                "outputPath"         : "dist/apps/client",
+                "format"             : [
+                    "cjs"
+                ],
+                "bundle"             : true,
+                "main"               : "apps/client/src/main.ts",
+                "tsConfig"           : "apps/client/tsconfig.app.json",
+                "assets"             : [
+                    {
+                        "input" : "apps/client/src/resource",
+                        "glob"  : "**/*",
+                        "output": "/resource"
+                    }
+                ],
+                "generatePackageJson": true,
+                "esbuildOptions"     : {
+                    "sourcemap"   : true,
+                    "outExtension": {
+                        ".js": ".js"
+                    }
+                }
+            },
+            "configurations"      : {
+                "development": { },
+                "production" : {
+                    "esbuildOptions": {
+                        "sourcemap"   : false,
+                        "outExtension": {
+                            ".js": ".js"
+                        }
+                    }
+                }
             }
-          }
-        }
-      }
-    },
-    "serve": {
-      "executor": "@nx/js:node",
-      "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "client:build"
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "client:build:development"
         },
-        "production": {
-          "buildTarget": "client:build:production"
+        "serve": {
+            "executor"            : "@nx/js:node",
+            "defaultConfiguration": "development",
+            "options"             : {
+                "buildTarget": "client:build"
+            },
+            "configurations"      : {
+                "development": {
+                    "buildTarget": "client:build:development"
+                },
+                "production" : {
+                    "buildTarget": "client:build:production"
+                }
+            }
+        },
+        "lint" : {
+            "executor": "@nx/linter:eslint",
+            "outputs" : [
+                "{options.outputFile}"
+            ],
+            "options" : {
+                "lintFilePatterns": [
+                    "apps/client/**/*.ts"
+                ]
+            }
         }
-      }
     },
-    "lint": {
-      "executor": "@nx/linter:eslint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": ["apps/client/**/*.ts"]
-      }
-    }
-  },
-  "tags": []
+    "tags"       : [ ]
 }

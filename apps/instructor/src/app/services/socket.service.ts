@@ -7,16 +7,18 @@ import { log } from '../logger';
 
 export class SocketService {
     
-    public server  = new WebSocketServer( { port: 3001 } );
     public bonjour = new Bonjour();
     
-    private clientIdentifierMap = new Map<string, string | undefined>();
-    private clientMap           = new Map<string, WebSocket>();
+    public server = new WebSocketServer( { port: 3001 } );
     
-    public readonly clientsSubject = new BehaviorSubject( [] as string[] );
+    public readonly registeredClientSessionToNameMap = new Map<string, string>();
+    public readonly registeredClientNameToSocketMap  = new Map<string, WebSocket>();
     
-    public readonly clientConnected    = new Subject<string>();
-    public readonly clientDisconnected = new Subject<string>();
+    public readonly registeredClientNamesSubject = new BehaviorSubject<string[]>( [] );
+    
+    public readonly clientNameConnectedSubject    = new Subject<string>();
+    public readonly clientNameDisconnectedSubject = new Subject<string>();
+    public readonly clientNameMessageSubject      = new Subject<[ string, string ]>();
     
     constructor() {
         
@@ -30,75 +32,88 @@ export class SocketService {
         
         this.server.on( 'connection', ( client ) => {
             
-            const uid = v4();
-            let identifier: string | undefined;
+            const session = v4();
             
-            this.clientIdentifierMap.set( uid, undefined );
+            let name: string | undefined;
             
             const greetTimeout = setTimeout( () => {
                 
-                log.error( `Client ${ uid } did not send a greeting in time. Closing connection.` );
-                
-                this.clientIdentifierMap.delete( uid );
-                this.clientMap.delete( uid );
-                
-                this.updateClients();
+                log.error( `Client did not send a greeting in time. Closing session (session-${ session })` );
                 
                 client.close();
                 
             }, 5000 );
             
             client.on( 'message', ( message ) => {
+                
                 try {
                     
+                    /* Try greeting message parsing */
+                    
                     const parsed = ZGreeting.parse( JSON.parse( message.toString() ) );
+                    
                     clearTimeout( greetTimeout );
                     
-                    log.log( `Client ${ uid } identified as ${ parsed.data.identifier }` );
+                    log.log( `Client identified (session-${ session } as name-${ parsed.data.identifier })` );
                     
-                    identifier = parsed.data.identifier;
+                    if ( Array.from(
+                        this.registeredClientSessionToNameMap.values()
+                    ).includes( parsed.data.identifier ) ) {
+                        log.warn( `Client with name ${ parsed.data.identifier } already connected. Rejecting / closing session (session-${ session })` );
+                        client.close();
+                        return;
+                    }
                     
-                    this.clientIdentifierMap.set( uid, identifier );
-                    this.clientMap.set( uid, client );
+                    name = parsed.data.identifier;
+                    
+                    this.registeredClientSessionToNameMap.set( session, name );
+                    this.registeredClientNameToSocketMap.set( name, client );
                     
                     this.updateClients();
                     
-                    this.clientConnected.next( identifier );
+                    this.clientNameConnectedSubject.next( name );
                     
-                } catch ( ignored ) {}
+                } catch ( ignored ) {
+                    
+                    /* Else emit message */
+                    
+                    if ( !name ) {
+                        log.warn( `Client sent a message without greeting first (session-${ session })` );
+                        return;
+                    }
+                    
+                    this.clientNameMessageSubject.next( [ name, message.toString() ] );
+                }
             } );
             
             client.on( 'close', () => {
                 
-                log.log( `Client ${ uid } disconnected` );
+                if ( name ) {
+                    log.log( `Client disconnected (name-${ name }, session-${ session })` );
+                } else {
+                    log.log( `Client disconnected (session-${ session })` );
+                }
                 
-                this.clientIdentifierMap.delete( uid );
-                this.clientMap.delete( uid );
+                this.registeredClientSessionToNameMap.delete( session );
+                
+                if ( name ) {
+                    this.registeredClientNameToSocketMap.delete( name );
+                }
                 
                 this.updateClients();
                 
-                if ( identifier ) {
-                    this.clientDisconnected.next( identifier );
+                if ( name ) {
+                    this.clientNameDisconnectedSubject.next( name );
                 }
             } );
         } );
     }
     
-    public sendAll( message: Record<string, any> ) {
-        this.clientMap.forEach( ( client ) => {
-            client.send( JSON.stringify( message ) );
-        } );
+    public getClient( name: string ) {
+        return this.registeredClientNameToSocketMap.get( name );
     }
     
-    public sendClient( identifier: string, message: Record<string, any> ) {
-        const clientIdentifier = Array.from( this.clientIdentifierMap.entries() ).find( ( [ , value ] ) => value === identifier );
-        const client           = clientIdentifier && clientIdentifier[ 0 ] && this.clientMap.get( clientIdentifier[ 0 ] );
-        if ( client ) {
-            client.send( JSON.stringify( message ) );
-        }
-    }
-    
-    public async close() {
+    public async closeServer() {
         return new Promise<void>( ( resolve ) => {
             this.server.close();
             this.bonjour.unpublishAll( () => {
@@ -109,7 +124,7 @@ export class SocketService {
     }
     
     private updateClients() {
-        this.clientsSubject.next( Array.from( this.clientIdentifierMap.values() ).filter( ( value ) => value !== undefined ) as string[] );
+        this.registeredClientNamesSubject.next( Array.from( this.registeredClientNameToSocketMap.keys() ) );
     }
 }
 
