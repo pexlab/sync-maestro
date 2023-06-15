@@ -2,7 +2,7 @@
 
 instructor.sqlite
 port-map.sh
-/binary
+/apps/client/src/resource/aaa
 
 .env
 

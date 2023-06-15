@@ -1,7 +1,6 @@
-import { Body, Controller, Get, OnModuleDestroy, OnModuleInit, Post } from '@nestjs/common';
+import { Body, Controller, Get, OnModuleDestroy, Post } from '@nestjs/common';
 import { ZDeviceConfig, ZRegisteredDevice } from '@sync-maestro/shared-interfaces';
 import { z } from 'zod';
-import { Instructor } from './instructor';
 import { clientManagerService } from './services/client-manager.service';
 import { socketService } from './services/socket.service';
 
@@ -16,7 +15,7 @@ export class AppController implements OnModuleDestroy {
         
         const result: z.infer<typeof ZRegisteredDevice>[] = [];
         
-        clientManagerService.clientList.forEach( ( client ) => {
+        clientManagerService.clientNameWithConfigs.forEach( ( client ) => {
             result.push( {
                 identifier: client[ 0 ],
                 ...client[ 1 ]
@@ -38,6 +37,6 @@ export class AppController implements OnModuleDestroy {
     }
     
     public async onModuleDestroy() {
-        await socketService.close();
+        await socketService.closeServer();
     }
 }

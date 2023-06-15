@@ -3,16 +3,23 @@ import * as os from 'os';
 import * as path from 'path';
 import { z } from 'zod';
 
-export const ZCommand = z.object( {
-    at_macro_tick: z.number(),
-    at_micro_tick: z.number(),
-    type         : z.enum( [ 'Video' ] ),
-    media        : z.object( {
-        state: z.enum( [ 'Playing', 'Paused' ] ),
-        url  : z.string(),
-        be_at: z.number()
+export const ZServerToClientCommand = z.discriminatedUnion( 'type', [
+    z.object( {
+        type : z.literal( 'ResumeWhen' ),
+        macro: z.number().min( 1 ).max( 254 ),
+        micro: z.number().min( 1 ).max( 100 )
+    } ),
+    z.object( {
+        type : z.literal( 'PauseNowAt' ),
+        be_at: z.number().min( 0 ),
+        url  : z.string().min( 1 )
+    } ),
+    z.object( {
+        type: z.literal( 'PauseNow' )
     } )
-} );
+] );
+
+export type IServerToClientCommand = z.infer<typeof ZServerToClientCommand>;
 
 export const ZTransformedCommand = z.union( [
     
