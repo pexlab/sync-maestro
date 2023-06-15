@@ -7,8 +7,6 @@ import { clientManagerService } from './services/client-manager.service';
 
 export class Instructor {
     
-    private _timer!: Timer;
-    
     private _playlists: IPlaylist[] = [];
     
     private _current_playlist!: IPlaylist;
@@ -98,7 +96,7 @@ export class Instructor {
     public pause() {
         this._paused = true;
         
-        const micro_since_startup = this._timer.currentMicroTickSinceStartup;
+        const micro_since_startup = timer.currentMicroTickSinceStartup;
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
@@ -106,7 +104,7 @@ export class Instructor {
         const be_at         = media_runtime * 10;
         
         for ( const [ mac, client ] of clientManagerService.clientNameWithControllers ) {
-            //client.pause(be_at, current_media.file_path)
+            client.pause(be_at, current_media.file_path)
         }
     }
     
@@ -215,7 +213,7 @@ export class Instructor {
     }
     
     public get media_runtime(): number {
-        const media_runtime = this._timer.currentMicroTickSinceStartup - this._current_media_begin;
+        const media_runtime = timer.currentMicroTickSinceStartup - this._current_media_begin;
         
         return media_runtime * 10;
     }
