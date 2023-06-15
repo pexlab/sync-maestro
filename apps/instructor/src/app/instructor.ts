@@ -50,7 +50,7 @@ export class Instructor {
             return;
         }
         
-        if(!this._wait_for_take_off){
+        if ( !this._wait_for_take_off ) {
             return;
         }
         
@@ -98,8 +98,15 @@ export class Instructor {
     public pause() {
         this._paused = true;
         
+        const micro_since_startup = this._timer.currentMicroTickSinceStartup;
+        
+        const current_media = this.current_playlist.media[ this._current_media_index ];
+        
+        const media_runtime = micro_since_startup - this._current_media_begin;
+        const be_at         = media_runtime * 10;
+        
         for ( const [ mac, client ] of clientManagerService.clientList ) {
-            //client.pause()
+            //client.pause(be_at, current_media.file_path)
         }
     }
     
