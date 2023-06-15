@@ -1,4 +1,4 @@
-import { IPlaylist, IState, Timer, ZPlaylist } from '@sync-maestro/shared-interfaces';
+import { IPlaylist, IState, ZPlaylist } from './interfaces/media.interface';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';

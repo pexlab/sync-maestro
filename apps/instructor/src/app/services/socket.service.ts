@@ -1,4 +1,4 @@
-import { ZGreeting } from '@sync-maestro/shared-interfaces';
+import { ZClientToServerCommand } from '@sync-maestro/shared-interfaces';
 import Bonjour from 'bonjour-service';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { v4 } from 'uuid';
@@ -34,13 +34,17 @@ export class SocketService {
             
             const session = v4();
             
+            log.warn( `Client connected (session-${ session })` );
+            
             let name: string | undefined;
             
-            const greetTimeout = setTimeout( () => {
+            let registrationTimeout: NodeJS.Timeout | undefined = setTimeout( () => {
                 
-                log.error( `Client did not send a greeting in time. Closing session (session-${ session })` );
+                log.error( `Client did not register in time. Closing session (session-${ session })` );
                 
                 client.close();
+                
+                registrationTimeout = undefined;
                 
             }, 5000 );
             
@@ -48,50 +52,75 @@ export class SocketService {
                 
                 try {
                     
-                    /* Try greeting message parsing */
+                    const parsed = ZClientToServerCommand.parse( JSON.parse( message.toString() ) );
                     
-                    const parsed = ZGreeting.parse( JSON.parse( message.toString() ) );
-                    
-                    clearTimeout( greetTimeout );
-                    
-                    log.log( `Client identified (session-${ session } as name-${ parsed.data.identifier })` );
-                    
-                    if ( Array.from(
-                        this.registeredClientSessionToNameMap.values()
-                    ).includes( parsed.data.identifier ) ) {
-                        log.warn( `Client with name ${ parsed.data.identifier } already connected. Rejecting / closing session (session-${ session })` );
-                        client.close();
-                        return;
+                    switch ( parsed.type ) {
+                        
+                        case 'Registration': {
+                            
+                            if ( registrationTimeout ) {
+                                clearTimeout( registrationTimeout );
+                                registrationTimeout = undefined;
+                            }
+                            
+                            log.log( `Client identified (session-${ session } as name-${ parsed.name })` );
+                            
+                            if ( Array.from(
+                                this.registeredClientSessionToNameMap.values()
+                            ).includes( parsed.name ) ) {
+                                log.warn( `Client with name ${ parsed.name } already connected. Rejecting / closing session (session-${ session })` );
+                                client.close();
+                                return;
+                            }
+                            
+                            name = parsed.name;
+                            
+                            this.registeredClientSessionToNameMap.set( session, name );
+                            this.registeredClientNameToSocketMap.set( name, client );
+                            
+                            this.updateClients();
+                            
+                            this.clientNameConnectedSubject.next( name );
+                            
+                            break;
+                        }
+                        
+                        default: {
+                            
+                            if ( !name ) {
+                                log.warn( `Client sent a message without registering first, ignoring (session-${ session })` );
+                                return;
+                            }
+                            
+                            this.clientNameMessageSubject.next( [ name, message.toString() ] );
+                            
+                            break;
+                        }
                     }
-                    
-                    name = parsed.data.identifier;
-                    
-                    this.registeredClientSessionToNameMap.set( session, name );
-                    this.registeredClientNameToSocketMap.set( name, client );
-                    
-                    this.updateClients();
-                    
-                    this.clientNameConnectedSubject.next( name );
                     
                 } catch ( ignored ) {
                     
-                    /* Else emit message */
-                    
-                    if ( !name ) {
-                        log.warn( `Client sent a message without greeting first (session-${ session })` );
-                        return;
+                    if ( name ) {
+                        log.warn( `Client sent an invalid message (name-${ name }, session-${ session })` );
+                    } else {
+                        log.warn( `Client sent an invalid message (session-${ session })` );
                     }
                     
-                    this.clientNameMessageSubject.next( [ name, message.toString() ] );
+                    log.warn( JSON.stringify( ignored, null, 2 ) );
                 }
             } );
             
             client.on( 'close', () => {
                 
                 if ( name ) {
-                    log.log( `Client disconnected (name-${ name }, session-${ session })` );
+                    log.warn( `Client disconnected (name-${ name }, session-${ session })` );
                 } else {
-                    log.log( `Client disconnected (session-${ session })` );
+                    log.warn( `Client disconnected (session-${ session })` );
+                }
+                
+                if ( registrationTimeout ) {
+                    clearTimeout( registrationTimeout );
+                    registrationTimeout = undefined;
                 }
                 
                 this.registeredClientSessionToNameMap.delete( session );

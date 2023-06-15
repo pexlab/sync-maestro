@@ -1,8 +1,8 @@
 import { select } from '@inquirer/prompts';
 import { NestFactory } from '@nestjs/core';
 import { Timer } from '@sync-maestro/shared-interfaces';
-import { SerialTimer } from '@sync-maestro/shared-utils';
 import { SerialPort } from 'serialport';
+import { SerialTimer } from 'shared-backend-utils';
 import YAML from 'yaml';
 
 import { AppModule } from './app/app.module';

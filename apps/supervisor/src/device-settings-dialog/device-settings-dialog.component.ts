@@ -2,8 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { IFePopup } from '@pexlab/ngx-front-engine';
-import { ZDeviceConfig, ZRegisteredDevice } from '@sync-maestro/shared-interfaces';
-import { z } from 'zod';
+import { IRegisteredDevice, ZDeviceConfig } from '@sync-maestro/shared-interfaces';
 
 @Component( {
     templateUrl: './device-settings-dialog.component.html',
@@ -11,7 +10,7 @@ import { z } from 'zod';
 } )
 export class DeviceSettingsDialogComponent implements IFePopup, OnInit, AfterViewInit {
     
-    public device!: z.infer<typeof ZRegisteredDevice>;
+    public device!: IRegisteredDevice;
     
     public group: ReturnType<typeof this.getFormGroup> = undefined;
     
@@ -48,20 +47,20 @@ export class DeviceSettingsDialogComponent implements IFePopup, OnInit, AfterVie
     
     private getFormGroup() {
         return this.device ? this.fb.group( {
-            name   : this.device.name,
-            channel: this.fb.array( [ ...this.device.channels.map( ( channel ) => this.fb.control( channel ) ), this.fb.control( null ) ] ),
-            offset : this.device.offset,
-            type   : this.device.type,
-            id     : { value: this.device.identifier, disabled: true },
-            device : this.device.device,
-            video  : this.fb.group( {
+            name       : { value: this.device.name, disabled: true },
+            displayName: this.device.displayName,
+            channel    : this.fb.array( [ ...this.device.channels.map( ( channel ) => this.fb.control( channel ) ), this.fb.control( null ) ] ),
+            offset     : this.device.offset,
+            type       : this.device.type,
+            device     : this.device.device,
+            video      : this.fb.group( {
                 resolution : this.device.type === 'Video' ? this.device.video.resolution : null,
                 fit        : this.device.type === 'Video' ? this.device.video.fit : null,
                 codec      : this.device.type === 'Video' ? this.device.video.codec : null,
                 compression: this.device.type === 'Video' ? this.device.video.compression : null,
                 container  : this.device.type === 'Video' ? this.device.video.container : null
             } ),
-            audio  : this.fb.group( {
+            audio      : this.fb.group( {
                 codec      : this.device.type === 'Audio' ? this.device.audio.codec : null,
                 compression: this.device.type === 'Audio' ? this.device.audio.compression : null,
                 container  : this.device.type === 'Audio' ? this.device.audio.container : null
@@ -92,7 +91,7 @@ export class DeviceSettingsDialogComponent implements IFePopup, OnInit, AfterVie
         const config = ZDeviceConfig.parse( val );
         
         this.http.post( 'http://localhost:3000/device', {
-            identifier: this.device.identifier,
+            name: this.device.name,
             config
         } ).subscribe( {
             next: () => {

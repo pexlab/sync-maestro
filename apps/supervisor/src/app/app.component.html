@@ -57,13 +57,13 @@
 
                 <div>
 
-                    <span class="heading">{{ device.name }}</span>
+                    <span class="heading">{{ device.displayName }}</span>
 
                     <span>{{ ReadableCase(device.device) }}</span>
 
                     <div>
                         <svg-icon src="assets/icon/health.svg"></svg-icon>
-                        <span>Health OK</span>
+                        <span>{{ device.readyForTakeoff ? 'Ready for takeoff' : 'Not ready for takeoff' }}</span>
                     </div>
 
                     <div>

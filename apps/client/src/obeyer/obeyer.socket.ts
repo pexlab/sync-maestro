@@ -74,7 +74,7 @@ export class ObeyerSocket {
                 this.client = undefined;
                 this.connectionStatus.next( false );
                 
-                this.tryConnectionLoop( onAddress, 50 );
+                this.tryConnectionLoop( onAddress, 500 );
             };
             
             this.client.onerror = () => {
@@ -85,7 +85,7 @@ export class ObeyerSocket {
                     this.connectionStatus.next( false );
                 }
                 
-                this.tryConnectionLoop( onAddress, 50 );
+                this.tryConnectionLoop( onAddress, 500 );
             };
             
             this.client.onmessage = ( event ) => {

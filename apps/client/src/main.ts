@@ -1,7 +1,8 @@
 import { select } from '@inquirer/prompts';
 import { Timer } from '@sync-maestro/shared-interfaces';
-import { EmptyTimer, SerialTimer } from '@sync-maestro/shared-utils';
+import { EmptyTimer } from '@sync-maestro/shared-utils';
 import { SerialPort } from 'serialport';
+import { SerialTimer } from 'shared-backend-utils';
 import YAML from 'yaml';
 import { Obeyer } from './obeyer/obeyer';
 import { Anime4K } from './util';

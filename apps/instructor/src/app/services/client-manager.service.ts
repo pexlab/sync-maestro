@@ -1,19 +1,21 @@
-import { IServerToClientCommand, ZDeviceConfig, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
+import { IDeviceConfig, IServerToClientCommand, ZClientToServerCommand, ZDeviceConfig, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
+import { ObservableMap } from '@sync-maestro/shared-utils';
 import { z } from 'zod';
 import { databaseService } from './database.service';
 import { socketService } from './socket.service';
 
 export class ClientManagerService {
     
-    private clientNameToConfigMap: Map<string, z.infer<typeof ZDeviceConfig>> = new Map();
+    public clientNameToConfigMap: Map<string, z.infer<typeof ZDeviceConfig>> = new Map();
+    public clientNameToReadyForTakeoff: ObservableMap<string, boolean>       = new ObservableMap();
     
     private readonly defaultConfig = ZDeviceConfig.parse( {
-        type    : 'Video',
-        device  : 'Monitor',
-        name    : 'Unnamed Device',
-        offset  : 0,
-        channels: [],
-        video   : {
+        type       : 'Video',
+        device     : 'Monitor',
+        displayName: 'Unnamed Device',
+        offset     : 0,
+        channels   : [],
+        video      : {
             codec      : 'H.264 / AVC',
             container  : 'Mp4',
             compression: 'UnnoticeableCompression',
@@ -40,16 +42,24 @@ export class ClientManagerService {
             this.clientNameToConfigMap.set( name, this.defaultConfig );
             await databaseService.set( name, this.clientNameToConfigMap.get( name ) );
         }
+        
+        this.clientNameToReadyForTakeoff.set( name, false );
     }
     
     private onClientDisconnect( name: string ) {
         this.clientNameToConfigMap.delete( name );
+        this.clientNameToReadyForTakeoff.delete( name );
     }
     
     private onClientMessage( name: string, message: string ) {
         
-        if ( message === 'ready-for-takeoff' ) {
+        const command = ZClientToServerCommand.parse( JSON.parse( message ) );
         
+        switch ( command.type ) {
+            
+            case 'ReadyForTakeoff':
+                this.clientNameToReadyForTakeoff.set( name, command.state );
+                break;
         }
     }
     
@@ -57,7 +67,7 @@ export class ClientManagerService {
         
         const result: [
             string, {
-                pause: ( be_at?: number, url?: string ) => void,
+                pause: ( be_at: number, url: string ) => void,
                 resume: ( macro: number, micro: number ) => void,
             }
         ][] = [];
@@ -67,28 +77,15 @@ export class ClientManagerService {
             result.push( [
                 name,
                 {
-                    pause: ( be_at?: number, url?: string ) => {
+                    pause: ( be_at: number, url: string ) => {
                         
-                        if ( ( be_at !== undefined && url === undefined ) || ( be_at === undefined && url !== undefined ) ) {
-                            throw new Error( 'be_at and url must be both defined or both undefined' );
-                        }
+                        this.clientNameToReadyForTakeoff.set( name, false );
                         
-                        let cmd: IServerToClientCommand;
-                        
-                        if ( be_at === undefined && url === undefined ) {
-                            
-                            cmd = ZServerToClientCommand.parse( {
-                                type: 'PauseNow'
-                            } as IServerToClientCommand );
-                            
-                        } else {
-                            
-                            cmd = ZServerToClientCommand.parse( {
-                                type: 'PauseNowAt',
-                                be_at,
-                                url
-                            } as IServerToClientCommand );
-                        }
+                        const cmd = ZServerToClientCommand.parse( {
+                            type: 'PauseImmediatelyAt',
+                            be_at,
+                            url
+                        } as IServerToClientCommand );
                         
                         ws.send( JSON.stringify( cmd ) );
                     },
@@ -114,7 +111,7 @@ export class ClientManagerService {
         return Array.from( this.clientNameToConfigMap.entries() );
     }
     
-    public async changeDevice( name: string, config: z.infer<typeof ZDeviceConfig> ) {
+    public async editDeviceConfig( name: string, config: IDeviceConfig ) {
         this.clientNameToConfigMap.set( name, config );
         await databaseService.set( name, config );
     }

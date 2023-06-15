@@ -1,6 +1,6 @@
 import { Controller, Get, OnModuleInit, Param, Post } from '@nestjs/common';
-import { IStatus } from '@sync-maestro/shared-interfaces';
 import { Instructor } from './instructor';
+import { IStatus } from './interfaces/media.interface';
 
 @Controller( 'instructor' )
 export class InstructorController implements OnModuleInit {

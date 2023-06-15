@@ -1,56 +1,4 @@
-import { spawnSync } from 'child_process';
-import * as os from 'os';
-import * as path from 'path';
 import { z } from 'zod';
-
-export const ZServerToClientCommand = z.discriminatedUnion( 'type', [
-    z.object( {
-        type : z.literal( 'ResumeWhen' ),
-        macro: z.number().min( 1 ).max( 254 ),
-        micro: z.number().min( 1 ).max( 100 )
-    } ),
-    z.object( {
-        type : z.literal( 'PauseNowAt' ),
-        be_at: z.number().min( 0 ),
-        url  : z.string().min( 1 )
-    } ),
-    z.object( {
-        type: z.literal( 'PauseNow' )
-    } )
-] );
-
-export type IServerToClientCommand = z.infer<typeof ZServerToClientCommand>;
-
-export const ZTransformedCommand = z.union( [
-    
-    z.object( {
-        action       : z.literal( 'load_url_pause_and_seek' ),
-        at_macro_tick: z.number(),
-        at_micro_tick: z.number(),
-        url          : z.string(),
-        to_position  : z.number()
-    } ),
-    
-    z.object( {
-        action       : z.literal( 'pause_and_seek' ),
-        at_macro_tick: z.number(),
-        at_micro_tick: z.number(),
-        to_position  : z.number()
-    } ),
-    
-    z.object( {
-        action       : z.literal( 'resume' ),
-        at_macro_tick: z.number(),
-        at_micro_tick: z.number()
-    } )
-] );
-
-export const ZGreeting = z.object( {
-    type: z.literal( 'Greeting' ),
-    data: z.object( {
-        identifier: z.string()
-    } )
-} );
 
 export const ZVideoDevice = z.enum( [
     'Desktop',
@@ -90,9 +38,9 @@ export const ZFilter = z.object( {
 
 export const ZDeviceConfig = z.object( {
     
-    name    : z.string(),
-    channels: z.string().array(),
-    offset  : z.number()
+    displayName: z.string(),
+    channels   : z.string().array(),
+    offset     : z.number()
     
 } ).and( z.union( [
     
@@ -183,83 +131,11 @@ export const ZDeviceConfig = z.object( {
     } )
 ] ) );
 
-export const ZTranscodeJob = z.object( {
-    job        : z.literal( 'Transcode' ),
-    type       : z.enum( [
-        'Video',
-        'Audio'
-    ] ),
-    device     : ZDevice,
-    started_ago: z.number(),
-    progress   : z.number().min( 0 ).max( 1 )
-} );
-
-export const ZJob = z.union( [
-    
-    ZTranscodeJob,
-    
-    z.object( {
-        job: z.literal( 'Audio' )
-    } )
-
-] );
+export type IDeviceConfig = z.infer<typeof ZDeviceConfig>;
 
 export const ZRegisteredDevice = ZDeviceConfig.and( z.object( {
-    identifier: z.string()
+    name           : z.string().min( 1 ),
+    readyForTakeoff: z.boolean()
 } ) );
 
-//TODO: Auslagern
-
-export const ZMedia = z.object( {
-    name     : z.string(),
-    file_path: z.string()
-} ).transform( ( obj ) => {
-    
-    const ffmpegArgs = [
-        '-v', 'error',
-        '-show_entries',
-        'format=duration',
-        '-of', 'default=noprint_wrappers=1:nokey=1',
-        path.join( os.homedir(), obj.file_path )
-    ];
-    
-    const duration       = +spawnSync( 'ffprobe', ffmpegArgs ).stdout.toString();
-    const duration_micro = Math.round( duration * 1000 / 10 );
-    
-    return {
-        ...obj,
-        duration,
-        duration_micro
-    };
-} );
-
-export type IPlaylist = z.infer<typeof ZPlaylist>;
-export type IMedia = z.infer<typeof ZMedia>;
-export type IMediaPlaylist = z.infer<typeof ZMediaPlaylist>;
-export type IStatus = z.infer<typeof ZStatus>;
-export type IState = z.infer<typeof ZState>;
-
-export const ZMediaPlaylist = z.object( {
-    duration   : z.number(),
-    shuffle    : z.boolean(),
-    playlist_id: z.number()
-} );
-
-export const ZPlaylist = z.object( {
-    id   : z.number(),
-    name : z.string(),
-    media: /*ZMedia.or(ZMediaPlaylist).array()*/ ZMedia.array()
-} );
-
-export const ZState = z.enum( [
-    'Playing',
-    'Paused',
-    'WaitingForTakeOff'
-] );
-
-export const ZStatus = z.object( {
-    playlist     : ZPlaylist,
-    state        : ZState,
-    media_index  : z.number(),
-    media_runtime: z.number()
-} );
+export type IRegisteredDevice = z.infer<typeof ZRegisteredDevice>;

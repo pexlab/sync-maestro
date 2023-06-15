@@ -1,8 +1,7 @@
-import { ZGreeting } from '@sync-maestro/shared-interfaces';
+import { IClientToServerCommand, ZClientToServerCommand, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
 import Bonjour from 'bonjour-service';
 import macaddress from 'macaddress';
-import { z } from 'zod';
-import { shaders } from '../main';
+import { shaders, timer } from '../main';
 import { MPV } from '../mpv';
 import { FindFirstLan4, logger } from '../util';
 import { ObeyerSocket } from './obeyer.socket';
@@ -14,6 +13,10 @@ export class Obeyer {
     private bonjour;
     private browser;
     private mpv;
+    private resumeWhen = {
+        macro: NaN,
+        micro: NaN
+    };
     
     constructor() {
         
@@ -31,27 +34,55 @@ export class Obeyer {
                             return;
                         }
                         
-                        const greeting: z.infer<typeof ZGreeting> = {
-                            type: 'Greeting',
-                            data: {
-                                identifier: mac
-                            }
-                        };
+                        const registration = ZClientToServerCommand.parse( {
+                            type: 'Registration',
+                            name: mac
+                        } as IClientToServerCommand );
                         
-                        client.send( JSON.stringify( greeting ) );
+                        client.send( JSON.stringify( registration ) );
                         
                         let currentUrl = '';
                         
-                        client.on( 'message', ( message ) => {
+                        client.on( 'message', async ( message ) => {
+                            
+                            if ( !this.mpv ) {
+                                logger.obeyer.warn( 'Ignored a message because MPV isn\'t initialized' );
+                                return;
+                            }
                             
                             try {
                                 
-                                const parsed = JSON.parse( message.toString() );
+                                const parsed = ZServerToClientCommand.parse( JSON.parse( message.toString() ) );
                                 
-                                console.log( 'Got message from instructor', parsed.data );
-                                
-                                if ( !this.mpv ) {
-                                    return;
+                                switch ( parsed.type ) {
+                                    
+                                    case 'PauseImmediatelyAt':
+                                        
+                                        this.sendReadyForTakeoff( false );
+                                        
+                                        if ( parsed.url !== currentUrl ) {
+                                            currentUrl = parsed.url;
+                                            await this.mpv.control.loadFile( parsed.url );
+                                        }
+                                        
+                                        await this.mpv.control.pause_at( parsed.be_at );
+                                        
+                                        logger.obeyer.log( 'Paused at ' + parsed.be_at + 's (' + parsed.url + ')' );
+                                        
+                                        this.sendReadyForTakeoff( true );
+                                        
+                                        break;
+                                    
+                                    case 'ResumeWhen':
+                                        
+                                        this.resumeWhen = {
+                                            macro: parsed.macro,
+                                            micro: parsed.micro
+                                        };
+                                        
+                                        logger.obeyer.log( 'Resuming when it strikes ' + parsed.macro + 'M:' + parsed.micro + 'm' );
+                                        
+                                        break;
                                 }
                                 
                             } catch ( e ) {
@@ -101,5 +132,26 @@ export class Obeyer {
             screen: 0,
             shaders
         } );
+        
+        timer.onTick.subscribe( () => {
+            
+            const macro = timer.currentMacroTick;
+            const micro = timer.currentMicroTick;
+            
+            if ( macro === this.resumeWhen.macro && micro === this.resumeWhen.micro ) {
+                this.mpv.control.resume();
+                logger.obeyer.log( 'Resumed' );
+            }
+        } );
+    }
+    
+    private sendReadyForTakeoff( state: boolean ) {
+        
+        const cmd = ZClientToServerCommand.parse( {
+            type: 'ReadyForTakeoff',
+            state
+        } as IClientToServerCommand );
+        
+        this.socket.client?.send( JSON.stringify( cmd ) );
     }
 }

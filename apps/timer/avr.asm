@@ -26,53 +26,76 @@ sts UCSR0C, r17
 ; r21 = Bytes to be transmitted over UART
 ; r22 = Working register for transmitting
 
-ldi r21, 0x00 ; init counter to 0
+ldi r25, 0x01 ; init macro counter to 1
+ldi r26, 0x01 ; init micro counter to 1
 
 ; Settings for debug pin
-
 .equ output = 2;
-
 sbi DDRD, output
 
 ; Main logic (called every second)
-
 counter_interval:
 
-ldi r18 , 0x80
-ldi r19 , 0x84
-ldi r20 , 0x1E
 
-brts debug_pin_off ; If "set" flag, jump to toggle it off
-sbi PORTD , output ; Toggle debug pin on
-set
-rjmp continue_interval
+	ldi r19 , 0x20
+	ldi r20 , 0x4E
 
-debug_pin_off:
-cbi PORTD , output ; Toggle debug pin off
-clt
+	brts debug_pin_off ; If "set" flag, jump to toggle it off
+	sbi PORTD , output ; Toggle debug pin on
+	set
+	rjmp continue_interval
+		debug_pin_off:
+		cbi PORTD , output ; Toggle debug pin off
+		clt
+	continue_interval:
+	call transmit_over_uart ; Send counter to Serial
 
-continue_interval:
+	inc r26
+	cpi r26, 0x65
+	brne skip_micro_reset
+		ldi r26, 0x01
+		inc r25
+	skip_micro_reset:
 
-call transmit_over_uart ; Send counter to Serial
-inc r21 ; Increment counter (Overflow will make it reset to 0, which we want)
+
+	cpi r25, 0xFF
+	brne skip_macro_reset
+		ldi r25, 0x01
+	skip_macro_reset:
+
 
 ; Counter logic (infinite loop to determine when to jump to the main logic)
-counter_loop:
-	subi r18 , 1
-	sbci r19 , 0
-	sbci r20 , 0
-	nop
-	nop
-brmi counter_interval 
-rjmp counter_loop
+	counter_loop:
+		subi r19 , 1
+		sbci r20 , 0
+		nop
+		nop
+		nop
+brmi counter_interval
+	rjmp counter_loop
 
 ; Functions which should only be called from code above
 
 ; Send a character over UART
 transmit_over_uart:
-	send_loop: ; Wait for the connection to be free
+	cpi r26, 0x01
+	brne send_micro_l
+		ldi r24, 0x00
+		call transmit_byte
+		mov r24, r25
+		call transmit_byte
+		ret
+	send_micro_l:
+		ldi r24, 0xFF
+		call transmit_byte
+		mov r24, r26
+		call transmit_byte
+		ret
+
+transmit_byte: //transmits r24 to UARTA
+	send_occupied:
 		lds r22, UCSR0A
-		andi r22, empty_mask 
-	breq send_loop
-	sts UDR0, r21 ; Send counter
+		andi r22, empty_mask
+	breq send_occupied
+	sts UDR0, r24
 ret

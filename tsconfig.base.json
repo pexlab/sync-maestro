@@ -18,7 +18,8 @@
       "@sync-maestro/shared-interfaces": [
         "libs/shared-interfaces/src/index.ts"
       ],
-      "@sync-maestro/shared-utils": ["libs/shared-utils/src/index.ts"]
+      "@sync-maestro/shared-utils": ["libs/shared-utils/src/index.ts"],
+      "shared-backend-utils": ["libs/shared-backend-utils/src/index.ts"]
     },
     "strict": true,
     "strictNullChecks": true

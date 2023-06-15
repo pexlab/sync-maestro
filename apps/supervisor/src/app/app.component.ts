@@ -1,13 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { Color, FeColorPalette, PopupService, ThemeService } from '@pexlab/ngx-front-engine';
-import { ZRegisteredDevice } from '@sync-maestro/shared-interfaces';
-import { PromiseLoop, ReadableCase, ReadableNumber, SimulateAdapter } from '@sync-maestro/shared-utils';
+import { IRegisteredDevice, ZRegisteredDevice } from '@sync-maestro/shared-interfaces';
+import { PromiseLoop, ReadableCase, ReadableNumber, WebSerialTimer } from '@sync-maestro/shared-utils';
 import { SvgIconRegistryService } from 'angular-svg-icon';
 import capitalize from 'just-capitalize';
 import kebabCase from 'just-kebab-case';
 import { z } from 'zod';
-import { WebSerialTimer } from '../../../../libs/shared-utils/src/lib/timer/web-serial.timer';
 import { DeviceSettingsDialogComponent } from '../device-settings-dialog/device-settings-dialog.component';
 
 @Component( {
@@ -184,8 +183,8 @@ export class AppComponent implements AfterViewInit {
         } ).open();
     }
     
-    public trackByDevice( index: number, device: z.infer<typeof ZRegisteredDevice> ) {
-        return device.identifier;
+    public trackByDevice( index: number, device: IRegisteredDevice ) {
+        return device.name;
     }
     
     private updateLoop() {
