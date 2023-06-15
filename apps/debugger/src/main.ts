@@ -1,13 +1,33 @@
+import { select } from '@inquirer/prompts';
 import * as process from 'process';
 import { SerialPort } from 'serialport';
+import YAML from 'yaml';
 
-const ttl = new SerialPort( {
-    path: '/dev/tty.usbserial-AH06SQPE',
-    baudRate: 9600
-})
+async function boostrap() {
+    
+    const ports = await SerialPort.list();
+    
+    const port = await select( {
+        message: 'Select a port',
+        choices: ports.map( ( port ) => {
+            return {
+                name       : port.path,
+                description: '\n<-- Information about that port -->\n\n' + YAML.stringify( port ),
+                value      : port.path
+            };
+        } )
+    } );
+    
+    const ttl = new SerialPort( {
+        path: port,
+        baudRate: 9600
+    })
+    
+    ttl.on('data', (data) => {
+        console.log(data[0]);
+    } );
+    
+    process.stdin.resume();
+}
 
-ttl.on('data', (data) => {
-    console.log(data[0]);
-} );
-
-process.stdin.resume();
+boostrap().then()
