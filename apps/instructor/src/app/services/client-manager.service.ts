@@ -1,6 +1,7 @@
 import { IDeviceConfig, IServerToClientCommand, ZClientToServerCommand, ZDeviceConfig, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
 import { ObservableMap } from '@sync-maestro/shared-utils';
 import { z } from 'zod';
+import { log } from '../logger';
 import { databaseService } from './database.service';
 import { socketService } from './socket.service';
 
@@ -88,6 +89,8 @@ export class ClientManagerService {
                         } as IServerToClientCommand );
                         
                         ws.send( JSON.stringify( cmd ) );
+                        
+                        log.log( 'Sent to (name-' + name + '): ' + JSON.stringify( cmd ) );
                     },
                     
                     resume: ( macro: number, micro: number ) => {
@@ -99,6 +102,8 @@ export class ClientManagerService {
                         } as IServerToClientCommand );
                         
                         ws.send( JSON.stringify( cmd ) );
+                        
+                        log.log( 'Sent to (name-' + name + '): ' + JSON.stringify( cmd ) );
                     }
                 }
             ] );

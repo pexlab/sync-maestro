@@ -7,7 +7,10 @@ export class SerialTimer implements Timer {
     constructor( serial: string ) {
         this.ttl = new SerialPort( {
             path    : serial,
-            baudRate: 9600
+            baudRate: 9600,
+            dataBits: 8,
+            stopBits: 1,
+            parity  : 'none'
         } );
     }
     
@@ -21,8 +24,6 @@ export class SerialTimer implements Timer {
     private _microTick              = 0;
     private _macroTicksSinceStartup = 0;
     private _microTicksSinceStartup = 0;
-    
-    private _lastSerialData!: number;
     
     private ttl;
     
@@ -52,43 +53,67 @@ export class SerialTimer implements Timer {
             return;
         }
         
+        let buffer = Buffer.alloc( 0 );
+        
+        let startByte: 0 | 255 | null = null;
+        
         this.ttl.on( 'data', ( data ) => {
             
-            const dataAsNumber = Number( data[ 0 ] );
+            buffer = Buffer.concat( [ buffer, data ] );
             
-            if ( this._lastSerialData
-                && dataAsNumber != 0x00
-                && dataAsNumber != 0xFF ) {
+            while ( buffer.length > 0 ) {
                 
-                //Macro Tick
-                if ( this._lastSerialData === 0x00 ) {
-                    this._macroTick = dataAsNumber;
-                    this._macroTicksSinceStartup++;
+                if ( startByte === null ) {
                     
-                    this._microTick = 0x00;
+                    if ( buffer[ 0 ] === 255 || buffer[ 0 ] === 0 ) {
+                        startByte = buffer[ 0 ];
+                    }
                     
-                    this.onMacroTick.next( {
-                        tick               : this._macroTick,
-                        ticks_since_startup: this._macroTicksSinceStartup
+                    buffer = buffer.slice( 1 );
+                    
+                } else {
+                    
+                    if ( buffer.length < 1 ) {
+                        break;
+                    }
+                    
+                    const payload = buffer.slice( 0, 1 );
+                    
+                    buffer = buffer.slice( 1 );
+                    
+                    const tick = payload[ 0 ];
+                    
+                    /* Macro Tick */
+                    if ( startByte === 0 ) {
+                        
+                        this._macroTick = tick;
+                        this._macroTicksSinceStartup++;
+                        
+                        this._microTick = 0x00;
+                        
+                        this.onMacroTick.next( {
+                            tick               : this._macroTick,
+                            ticks_since_startup: this._macroTicksSinceStartup
+                        } );
+                    }
+                    
+                    /* Micro Tick */
+                    if ( startByte === 255 ) {
+                        this._microTick = tick - 1;
+                    }
+                    
+                    this._microTicksSinceStartup++;
+                    
+                    this.onMicroTick.next( {
+                        tick               : this._microTick,
+                        ticks_since_startup: this._microTicksSinceStartup
                     } );
+                    
+                    this.onTick.next();
+                    
+                    startByte = null;
                 }
-                
-                //Micro Tick
-                if(this._lastSerialData === 0xFF){
-                    this._microTick = dataAsNumber - 1;
-                }
-                
-                this._microTicksSinceStartup++;
-                
-                this.onMicroTick.next( {
-                    tick               : this._microTick,
-                    ticks_since_startup: this._microTicksSinceStartup
-                } );
-                
-                this.onTick.next();
             }
-            
-            this._lastSerialData = dataAsNumber;
         } );
     }
     

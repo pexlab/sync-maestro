@@ -50,11 +50,12 @@ export class MPV {
         
         loadFile: async ( url: string ) => {
             await this.socket.sendRequest( 'loadfile', url, 'replace' );
+            await this.socket.waitForEvent('playback-restart');
         },
         
         pause_at: async ( absoluteTimeInSec: number ) => {
             await this.socket.sendRequest( 'set_property', 'pause', true );
-            await this.socket.sendRequest( 'seek', String( absoluteTimeInSec ), 'absolute' );
+            await this.socket.sendRequest( 'seek', String(absoluteTimeInSec), 'absolute', 'exact' );
         },
         
         resume: async () => {

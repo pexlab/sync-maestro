@@ -28,6 +28,8 @@
     "@nestjs/platform-express": "^9.1.1",
     "@nestjs/platform-socket.io": "^9.4.2",
     "@pexlab/ngx-front-engine": "^0.0.77",
+    "@types/dom-serial": "^1.0.3",
+    "@types/w3c-web-serial": "^1.0.3",
     "angular-svg-icon": "^16.0.0",
     "axios": "^1.0.0",
     "bonjour-service": "^1.1.1",

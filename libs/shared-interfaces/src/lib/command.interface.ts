@@ -3,8 +3,8 @@ import { z } from 'zod';
 export const ZServerToClientCommand = z.discriminatedUnion( 'type', [
     z.object( {
         type : z.literal( 'ResumeWhen' ),
-        macro: z.number().min( 1 ).max( 254 ),
-        micro: z.number().min( 1 ).max( 100 )
+        macro: z.number().min( 0 ).max( 255 ),
+        micro: z.number().min( 0 ).max( 100 )
     } ),
     z.object( {
         type : z.literal( 'PauseImmediatelyAt' ),

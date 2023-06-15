@@ -42,6 +42,9 @@ export class MpvProcess {
                     '--screen=' + config.screen,
                     '--force-window',
                     '--no-border',
+                    '--window-maximized=yes',
+                    '--no-keepaspect-window',
+                    '--no-focus-on-open',
                     '--input-ipc-server=' + config.ipc,
                     ...shaders
                 ]

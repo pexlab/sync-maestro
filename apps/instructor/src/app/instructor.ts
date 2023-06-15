@@ -1,8 +1,9 @@
-import { IPlaylist, IState, ZPlaylist } from './interfaces/media.interface';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
 import { timer } from '../main';
+import { IPlaylist, IState, ZPlaylist } from './interfaces/media.interface';
+import { log } from './logger';
 import { clientManagerService } from './services/client-manager.service';
 
 export class Instructor {
@@ -41,14 +42,22 @@ export class Instructor {
                 this.next();
             }
         } );
+        
+        clientManagerService.clientNameToReadyForTakeoff.subscribe( ( map ) => {
+            if ( Array.from( map.values() ).every( val => val ) ) {
+                log.log( 'All clients are ready for take off' );
+                this.takeOff();
+            }
+        } );
     }
     
     private takeOff() {
+        
         if ( this._paused ) {
             return;
         }
         
-        if(!this._wait_for_take_off){
+        if ( !this._wait_for_take_off ) {
             return;
         }
         
@@ -64,11 +73,12 @@ export class Instructor {
         this._wait_for_take_off = false;
         
         for ( const [ name, client ] of clientManagerService.clientNameWithControllers ) {
-            client.resume(resume_macro, resume_micro)
+            client.resume( resume_macro, resume_micro );
         }
     }
     
     private prepareForTakeOff() {
+        
         const micro_since_startup = timer.currentMicroTickSinceStartup;
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
@@ -78,12 +88,17 @@ export class Instructor {
         
         this._wait_for_take_off = true;
         
+        log.log( 'Preparing for take off' );
+        
         for ( const [ name, client ] of clientManagerService.clientNameWithControllers ) {
-            client.pause(be_at, current_media.file_path)
+            client.pause( be_at, current_media.file_path );
         }
+        
+        log.log( 'Instructed clients to pause' );
     }
     
     public resume() {
+        
         if ( !this._paused ) {
             return;
         }
@@ -94,6 +109,7 @@ export class Instructor {
     }
     
     public pause() {
+        
         this._paused = true;
         
         const micro_since_startup = timer.currentMicroTickSinceStartup;
@@ -104,11 +120,12 @@ export class Instructor {
         const be_at         = media_runtime * 10;
         
         for ( const [ mac, client ] of clientManagerService.clientNameWithControllers ) {
-            client.pause(be_at, current_media.file_path)
+            client.pause( be_at, current_media.file_path );
         }
     }
     
     public next() {
+        
         this._current_media_begin = timer.currentMicroTickSinceStartup;
         
         this.setCurrentMediaIndex( this.current_media_index + 1 );
@@ -121,6 +138,7 @@ export class Instructor {
     }
     
     public prev() {
+        
         this._current_media_begin = timer.currentMicroTickSinceStartup;
         
         this.setCurrentMediaIndex( this.current_media_index - 1 );
@@ -133,6 +151,7 @@ export class Instructor {
     }
     
     public scrub( time: number ) {
+        
         const micro_since_startup = timer.currentMicroTickSinceStartup;
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
@@ -153,6 +172,7 @@ export class Instructor {
     }
     
     private loadPlaylistsFromFile( path: string ) {
+        
         const data = fs.readFileSync( path, 'utf-8' );
         
         const json = JSON.parse( data );
@@ -170,6 +190,7 @@ export class Instructor {
     }
     
     private normalizeMediaIndex( playlist: IPlaylist, media_index: number ) {
+        
         const media_length       = playlist.media.length;
         const media_index_length = media_length - 1;
         
@@ -213,6 +234,7 @@ export class Instructor {
     }
     
     public get media_runtime(): number {
+        
         const media_runtime = timer.currentMicroTickSinceStartup - this._current_media_begin;
         
         return media_runtime * 10;

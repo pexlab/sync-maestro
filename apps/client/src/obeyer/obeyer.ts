@@ -1,6 +1,8 @@
 import { IClientToServerCommand, ZClientToServerCommand, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
 import Bonjour from 'bonjour-service';
 import macaddress from 'macaddress';
+import * as os from 'os';
+import * as path from 'path';
 import { shaders, timer } from '../main';
 import { MPV } from '../mpv';
 import { FindFirstLan4, logger } from '../util';
@@ -50,6 +52,8 @@ export class Obeyer {
                                 return;
                             }
                             
+                            logger.obeyer.log( 'Received: ' + message.toString() );
+                            
                             try {
                                 
                                 const parsed = ZServerToClientCommand.parse( JSON.parse( message.toString() ) );
@@ -61,8 +65,12 @@ export class Obeyer {
                                         this.sendReadyForTakeoff( false );
                                         
                                         if ( parsed.url !== currentUrl ) {
+                                            
                                             currentUrl = parsed.url;
-                                            await this.mpv.control.loadFile( parsed.url );
+                                            
+                                            await this.mpv.control.loadFile( path.join( os.homedir(), parsed.url ) );
+                                            
+                                            logger.obeyer.log( 'Loaded file ' + parsed.url );
                                         }
                                         
                                         await this.mpv.control.pause_at( parsed.be_at );
@@ -129,9 +137,11 @@ export class Obeyer {
         this.mpv = new MPV();
         
         this.mpv.initialize( {
-            screen: 0,
+            screen: 1,
             shaders
         } );
+        
+        timer.enable();
         
         timer.onTick.subscribe( () => {
             
