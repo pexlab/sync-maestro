@@ -132,7 +132,7 @@ export class Obeyer {
             
             this.socket.connect( address + ':' + service.port );
             
-        }, 50 );
+        }, 2000 );
         
         this.mpv = new MPV();
         
