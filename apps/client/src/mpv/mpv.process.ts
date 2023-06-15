@@ -37,7 +37,6 @@ export class MpvProcess {
                 'mpv',
                 [
                     '--idle',
-                    '--screen=' + config.screen,
                     '--fullscreen',
                     '--no-audio',
                     '--log-file=mpv.log',
