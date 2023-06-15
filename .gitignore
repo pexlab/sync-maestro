@@ -1,8 +1,9 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 instructor.sqlite
-port-map.sh
-/apps/client/src/resource/aaa
+apps/client/src/resource/binary/**/*
+apps/instructor/src/assets/binary/**/*
+demo.mp4
 
 .env
 
