@@ -1,13 +1,11 @@
-import { IPlaylist, IState, Timer, ZPlaylist } from '@sync-maestro/shared-interfaces';
+import { IPlaylist, IState, ZPlaylist } from '@sync-maestro/shared-interfaces';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import { SerialTimer } from '@sync-maestro/shared-utils';
+import { timer } from '../main';
 import { clientManagerService } from './services/client-manager.service';
 
 export class Instructor {
-    
-    private _timer!: Timer;
     
     private _playlists: IPlaylist[] = [];
     
@@ -20,13 +18,13 @@ export class Instructor {
     private _paused            = true;
     
     constructor() {
+        
         this.loadPlaylistsFromFile( path.join( process.cwd(), 'apps', 'instructor', 'src', 'assets', 'playlist.json' ) );
         this.setCurrentPlaylist( 0 );
         
-        this._timer = new SerialTimer( '/dev/cu.usbserial-0001' );
-        this._timer.enable();
+        timer.enable();
         
-        this._timer.onMicroTick.subscribe( value => {
+        timer.onMicroTick.subscribe( value => {
             const micro_since_startup = value.ticks_since_startup;
             
             if ( this._paused || this._wait_for_take_off ) {
@@ -54,8 +52,8 @@ export class Instructor {
             return;
         }
         
-        const macro = this._timer.currentMacroTick;
-        const micro = this._timer.currentMicroTick;
+        const macro = timer.currentMacroTick;
+        const micro = timer.currentMicroTick;
         
         const resume_macro = this.normalizeMacro( macro + 2 );
         const resume_micro = 0;
@@ -65,13 +63,13 @@ export class Instructor {
         this._current_media_begin -= resume_offset;
         this._wait_for_take_off = false;
         
-        for ( const [ mac, client ] of clientManagerService.clientList ) {
-            //client.resume(resume_macro, resume_micro)
+        for ( const [ name, client ] of clientManagerService.clientNameWithControllers ) {
+            client.resume(resume_macro, resume_micro)
         }
     }
     
     private prepareForTakeOff() {
-        const micro_since_startup = this._timer.currentMicroTickSinceStartup;
+        const micro_since_startup = timer.currentMicroTickSinceStartup;
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
@@ -80,8 +78,8 @@ export class Instructor {
         
         this._wait_for_take_off = true;
         
-        for ( const [ mac, client ] of clientManagerService.clientList ) {
-            //client.pause(be_at, current_media.file_path)
+        for ( const [ name, client ] of clientManagerService.clientNameWithControllers ) {
+            client.pause(be_at, current_media.file_path)
         }
     }
     
@@ -98,13 +96,13 @@ export class Instructor {
     public pause() {
         this._paused = true;
         
-        for ( const [ mac, client ] of clientManagerService.clientList ) {
-            //client.pause()
+        for ( const [ name, client ] of clientManagerService.clientNameWithControllers ) {
+            client.pause()
         }
     }
     
     public next() {
-        this._current_media_begin = this._timer.currentMicroTickSinceStartup;
+        this._current_media_begin = timer.currentMicroTickSinceStartup;
         
         this.setCurrentMediaIndex( this.current_media_index + 1 );
         
@@ -116,7 +114,7 @@ export class Instructor {
     }
     
     public prev() {
-        this._current_media_begin = this._timer.currentMicroTickSinceStartup;
+        this._current_media_begin = timer.currentMicroTickSinceStartup;
         
         this.setCurrentMediaIndex( this.current_media_index - 1 );
         
@@ -128,7 +126,7 @@ export class Instructor {
     }
     
     public scrub( time: number ) {
-        const micro_since_startup = this._timer.currentMicroTickSinceStartup;
+        const micro_since_startup = timer.currentMicroTickSinceStartup;
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
@@ -208,7 +206,7 @@ export class Instructor {
     }
     
     public get media_runtime(): number {
-        const media_runtime = this._timer.currentMicroTickSinceStartup - this._current_media_begin;
+        const media_runtime = timer.currentMicroTickSinceStartup - this._current_media_begin;
         
         return media_runtime * 10;
     }
