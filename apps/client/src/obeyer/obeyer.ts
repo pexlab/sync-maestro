@@ -3,8 +3,8 @@ import Bonjour from 'bonjour-service';
 import macaddress from 'macaddress';
 import * as os from 'os';
 import * as path from 'path';
-import { shaders, timer } from '../main';
-import { MPV } from '../mpv';
+import { timer } from '../main';
+import { Vlc } from '../mpv';
 import { FindFirstLan4, logger } from '../util';
 import { ObeyerSocket } from './obeyer.socket';
 
@@ -14,7 +14,7 @@ export class Obeyer {
     
     private bonjour;
     private browser;
-    private mpv;
+    private vlc;
     private resumeWhen = {
         macro: NaN,
         micro: NaN
@@ -47,7 +47,7 @@ export class Obeyer {
                         
                         client.on( 'message', async ( message ) => {
                             
-                            if ( !this.mpv ) {
+                            if ( !this.vlc ) {
                                 logger.obeyer.warn( 'Ignored a message because MPV isn\'t initialized' );
                                 return;
                             }
@@ -68,12 +68,12 @@ export class Obeyer {
                                             
                                             currentUrl = parsed.url;
                                             
-                                            await this.mpv.control.loadFile( path.join( os.homedir(), parsed.url ) );
+                                            await this.vlc.control.loadFile( path.join( os.homedir(), parsed.url ) );
                                             
                                             logger.obeyer.log( 'Loaded file ' + parsed.url );
                                         }
                                         
-                                        await this.mpv.control.pause_at( parsed.be_at );
+                                        await this.vlc.control.pause_at( parsed.be_at );
                                         
                                         logger.obeyer.log( 'Paused at ' + parsed.be_at + 's (' + parsed.url + ')' );
                                         
@@ -134,12 +134,7 @@ export class Obeyer {
             
         }, 2000 );
         
-        this.mpv = new MPV();
-        
-        this.mpv.initialize( {
-            screen: 0,
-            shaders
-        } );
+        this.vlc = new Vlc();
         
         timer.enable();
         
@@ -149,7 +144,7 @@ export class Obeyer {
             const micro = timer.currentMicroTick;
             
             if ( macro === this.resumeWhen.macro && micro === this.resumeWhen.micro ) {
-                this.mpv.control.resume();
+                this.vlc.control.resume();
                 logger.obeyer.log( 'Resumed' );
             }
         } );

@@ -1,1 +1,1 @@
-export * from './mpv';
+export * from './vlc';
