@@ -45,7 +45,7 @@ export class Instructor {
         
         clientManagerService.clientNameToReadyForTakeoff.subscribe( ( map ) => {
             if ( Array.from( map.values() ).every( val => val ) ) {
-                log.log( 'All clients are ready for take off' );
+                log.log( 'All clients are ready for take off', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
                 this.takeOff();
             }
         } );
@@ -61,7 +61,7 @@ export class Instructor {
             return;
         }
         
-        log.log( 'Taking off now' );
+        log.log( 'Taking off now', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
         
         const macro = timer.currentMacroTick;
         const micro = timer.currentMicroTick;
@@ -90,13 +90,13 @@ export class Instructor {
         
         this._wait_for_take_off = true;
         
-        log.log( 'Preparing for take off' );
+        log.log( 'Preparing for take off', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
         
         for ( const [ name, client ] of clientManagerService.clientNameWithControllers ) {
             client.pause( be_at, current_media.file_path );
         }
         
-        log.log( 'Instructed clients to pause' );
+        log.log( 'Instructed clients to pause', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
     }
     
     public resume() {
