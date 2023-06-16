@@ -62,6 +62,11 @@ export class Obeyer {
                                     
                                     case 'PauseImmediatelyAt':
                                         
+                                        this.resumeWhen = {
+                                            macro: NaN,
+                                            micro: NaN
+                                        };
+                                        
                                         this.sendReadyForTakeoff( false );
                                         
                                         if ( parsed.url !== currentUrl ) {

@@ -61,13 +61,15 @@ export class Instructor {
             return;
         }
         
+        log.log( 'Taking off now' );
+        
         const macro = timer.currentMacroTick;
         const micro = timer.currentMicroTick;
         
         const resume_macro = this.normalizeMacro( macro + 2 );
         const resume_micro = 0;
-    
-        const resume_offset = ((resume_macro - macro) * 100) - micro;
+        
+        const resume_offset = ( ( resume_macro - macro ) * 100 ) - micro;
         
         this._current_media_begin += resume_offset;
         this._wait_for_take_off = false;
@@ -84,7 +86,7 @@ export class Instructor {
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
         const media_runtime = micro_since_startup - this._current_media_begin;
-        const be_at         = (media_runtime * 10) / 1000;
+        const be_at         = ( media_runtime * 10 ) / 1000;
         
         this._wait_for_take_off = true;
         
@@ -117,7 +119,7 @@ export class Instructor {
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
         const media_runtime = micro_since_startup - this._current_media_begin;
-        const be_at         = (media_runtime * 10) / 1000;
+        const be_at         = ( media_runtime * 10 ) / 1000;
         
         for ( const [ mac, client ] of clientManagerService.clientNameWithControllers ) {
             client.pause( be_at, current_media.file_path );
