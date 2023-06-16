@@ -86,7 +86,12 @@ export class Instructor {
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
-        const media_runtime = micro_since_startup - this._current_media_begin;
+        let media_runtime = micro_since_startup - this._current_media_begin;
+        
+        if(media_runtime < 0){
+            media_runtime = 0;
+        }
+        
         const be_at         = ( media_runtime * 10 ) / 1000;
         
         this._wait_for_take_off = true;
@@ -119,7 +124,12 @@ export class Instructor {
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
-        const media_runtime = micro_since_startup - this._current_media_begin;
+        let media_runtime = micro_since_startup - this._current_media_begin;
+        
+        if(media_runtime < 0){
+            media_runtime = 0;
+        }
+        
         const be_at         = ( media_runtime * 10 ) / 1000;
         
         for ( const [ mac, client ] of clientManagerService.clientNameWithControllers ) {
@@ -159,7 +169,7 @@ export class Instructor {
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
-        if ( time > current_media.duration ) {
+        if ( time > current_media.duration || time < 0) {
             return;
         }
         
