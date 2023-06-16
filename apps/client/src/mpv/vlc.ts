@@ -22,6 +22,7 @@ export class Vlc {
         pause_at: async ( absoluteTimeInSec: number ) => {
             await this.vlc.pause();
             await this.vlc.setTime( absoluteTimeInSec );
+            await this.vlc.pause();
         },
         
         resume: async () => {
