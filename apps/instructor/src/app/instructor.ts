@@ -1,3 +1,4 @@
+import { parseJSON } from '@sync-maestro/shared-utils';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
@@ -177,7 +178,7 @@ export class Instructor {
         
         const data = fs.readFileSync( path, 'utf-8' );
         
-        const json = JSON.parse( data );
+        const json = parseJSON( data );
         
         this._playlists = ZPlaylist.array().parse( json.playlists );
     }

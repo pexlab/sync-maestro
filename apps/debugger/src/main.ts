@@ -7,13 +7,25 @@ async function boostrap() {
     const vlc = new VLC.Client( {
         ip      : 'localhost',
         port    : 8080,
-        password: ''
+        password: 'sync-maestro'
     } );
     
+    let count = 0;
+    
     await vlc.playFile( path.join( os.homedir(), 'four.mp4' ) );
-    await vlc.pause();
-    await vlc.setTime(5);
-    await vlc.play();
+    
+    console.log('play');
+    
+    while ( true ) {
+        
+        vlc.play().then();
+        count++;
+        
+        if ( count > 1000 ) {
+            console.log('done');
+            break;
+        }
+    }
 }
 
 boostrap().then();

@@ -1,3 +1,4 @@
+import { parseJSON } from '@sync-maestro/shared-utils';
 import { BehaviorSubject, distinctUntilChanged, skip, Subject } from 'rxjs';
 import { WebSocket } from 'ws';
 import { logger } from '../util';
@@ -89,7 +90,7 @@ export class ObeyerSocket {
             };
             
             this.client.onmessage = ( event ) => {
-                const message = JSON.parse( String( event.data ) );
+                const message = parseJSON( String( event.data ) );
                 this.messages.next( message );
             };
             

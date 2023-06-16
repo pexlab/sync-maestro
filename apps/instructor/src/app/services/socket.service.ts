@@ -1,4 +1,5 @@
 import { ZClientToServerCommand } from '@sync-maestro/shared-interfaces';
+import { parseJSON } from '@sync-maestro/shared-utils';
 import Bonjour from 'bonjour-service';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { v4 } from 'uuid';
@@ -52,7 +53,7 @@ export class SocketService {
                 
                 try {
                     
-                    const parsed = ZClientToServerCommand.parse( JSON.parse( message.toString() ) );
+                    const parsed = ZClientToServerCommand.parse( parseJSON( message.toString() ) );
                     
                     switch ( parsed.type ) {
                         

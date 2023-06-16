@@ -1,4 +1,5 @@
 import { IClientToServerCommand, ZClientToServerCommand, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
+import { parseJSON } from '@sync-maestro/shared-utils';
 import Bonjour from 'bonjour-service';
 import macaddress from 'macaddress';
 import * as os from 'os';
@@ -56,7 +57,7 @@ export class Obeyer {
                             
                             try {
                                 
-                                const parsed = ZServerToClientCommand.parse( JSON.parse( message.toString() ) );
+                                const parsed = ZServerToClientCommand.parse( parseJSON( message.toString() ) );
                                 
                                 switch ( parsed.type ) {
                                     

@@ -1,5 +1,5 @@
 import { IDeviceConfig, IServerToClientCommand, ZClientToServerCommand, ZDeviceConfig, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
-import { ObservableMap } from '@sync-maestro/shared-utils';
+import { ObservableMap, parseJSON } from '@sync-maestro/shared-utils';
 import { z } from 'zod';
 import { log } from '../logger';
 import { databaseService } from './database.service';
@@ -54,7 +54,7 @@ export class ClientManagerService {
     
     private onClientMessage( name: string, message: string ) {
         
-        const command = ZClientToServerCommand.parse( JSON.parse( message ) );
+        const command = ZClientToServerCommand.parse( parseJSON( message ) );
         
         switch ( command.type ) {
             

@@ -5,3 +5,4 @@ export * from './lib/promise.util';
 export * from './lib/simulate.timer';
 export * from './lib/string.util';
 export * from './lib/web-serial.timer';
+export * from './lib/json.util';
