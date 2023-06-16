@@ -18,7 +18,7 @@ export class Vlc {
             await this.vlc.playFile( url );
             while ( !( await this.vlc.isPlaying() ) ) {
                 console.log('Waiting for VLC to start playing');
-                await new Promise( resolve => setTimeout( () => resolve, 1000 ) );
+                await new Promise<void>( resolve => setTimeout( () => resolve(), 1000 ) );
                 console.log( 'play (loadFile)' );
                 await this.vlc.play();
             }
