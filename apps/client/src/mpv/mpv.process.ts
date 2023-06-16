@@ -38,7 +38,9 @@ export class MpvProcess {
                 [
                     '--idle',
                     '--fullscreen',
-                    '--no-audio',
+                    '--force-window',
+                    '--ontop',
+                    '--no-osc',
                     '--log-file=mpv.log',
                     '--input-ipc-server=' + config.ipc,
                     ...shaders
