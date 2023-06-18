@@ -1,14 +1,27 @@
 import { select } from '@inquirer/prompts';
-import { NestFactory } from '@nestjs/core';
 import { Timer } from '@sync-maestro/shared-interfaces';
+import process from 'process';
 import { SerialPort } from 'serialport';
 import { SerialTimer } from 'shared-backend-utils';
 import YAML from 'yaml';
-import { AppModule } from './app/app.module';
+import { ClientManager } from './client.manager';
+import { ClientSocket } from './client.socket';
+import { ControlSocket } from './control.socket';
+import { DatabaseManager } from './database.manager';
+import { Instructor } from './instructor';
+import { logMessage } from './util/logger.util';
 
-export const MainDirectory = __dirname;
+export let databaseManager!: DatabaseManager;
 
 export let timer!: Timer;
+
+export let clientSocket!: ClientSocket;
+
+export let clientManager!: ClientManager;
+
+export let instructor!: Instructor;
+
+export let controlSocket!: ControlSocket;
 
 async function bootstrap() {
     
@@ -25,18 +38,23 @@ async function bootstrap() {
         } )
     } );
     
+    databaseManager = new DatabaseManager();
+    
     timer = new SerialTimer( port );
     
-    const app = await NestFactory.create( AppModule );
+    clientSocket = new ClientSocket();
     
-    app.enableCors( {
-        origin: '*'
-    } );
+    clientManager = new ClientManager();
     
-    await app.listen( 3000 );
+    instructor = new Instructor();
+    
+    controlSocket = new ControlSocket();
     
     process.on( 'SIGINT', async () => {
-        await app.close();
+        logMessage( 'Shutting down...' );
+        await clientSocket.shutdownAndUnpublish();
+        logMessage( 'Shutdown completed. Exiting...' );
+        process.exit( 0 );
     } );
 }
 

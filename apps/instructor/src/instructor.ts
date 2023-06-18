@@ -1,11 +1,9 @@
-import { parseJSON } from '@sync-maestro/shared-utils';
+import { parseZodFromJSON } from '@sync-maestro/shared-utils';
 import fs from 'fs';
-import path from 'path';
-import process from 'process';
-import { timer } from '../main';
-import { IPlaylist, IState, ZPlaylist } from './interfaces/media.interface';
-import { log } from './logger';
-import { clientManagerService } from './services/client-manager.service';
+import { IPlaylist, IState, ZPlaylist } from './interface/media.interface';
+import { clientManager, timer } from './main';
+import { Bazaar } from './util/bazaar.util';
+import { logMessage } from './util/logger.util';
 
 export class Instructor {
     
@@ -21,12 +19,13 @@ export class Instructor {
     
     constructor() {
         
-        this.loadPlaylistsFromFile( path.join( process.cwd(), 'apps', 'instructor', 'src', 'assets', 'playlist.json' ) );
+        this.loadPlaylistsFromFile( Bazaar.getResource( 'playlist.json' ) );
         this.setCurrentPlaylist( 0 );
         
         timer.enable();
         
         timer.onMicroTick.subscribe( value => {
+            
             const micro_since_startup = value.ticks_since_startup;
             
             if ( this._paused || this._wait_for_take_off ) {
@@ -44,9 +43,9 @@ export class Instructor {
             }
         } );
         
-        clientManagerService.clientNameToReadyForTakeoff.subscribe( ( map ) => {
+        clientManager.clientNameToReadyForTakeoff.subscribe( ( map ) => {
             if ( Array.from( map.values() ).every( val => val ) ) {
-                log.log( 'All clients are ready for take off', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
+                logMessage( 'All clients became ready for takeoff' );
                 this.takeOff();
             }
         } );
@@ -62,7 +61,7 @@ export class Instructor {
             return;
         }
         
-        log.log( 'Taking off now', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
+        logMessage( 'Taking off...' );
         
         const macro = timer.currentMacroTick;
         const micro = timer.currentMicroTick;
@@ -75,7 +74,7 @@ export class Instructor {
         this._current_media_begin += resume_offset;
         this._wait_for_take_off = false;
         
-        for ( const [ name, client ] of clientManagerService.clientNameWithControllers ) {
+        for ( const [ , client ] of clientManager.clientNameWithControllers ) {
             client.resume( resume_macro, resume_micro );
         }
     }
@@ -88,21 +87,21 @@ export class Instructor {
         
         let media_runtime = micro_since_startup - this._current_media_begin;
         
-        if(media_runtime < 0){
+        if ( media_runtime < 0 ) {
             media_runtime = 0;
         }
         
-        const be_at         = ( media_runtime * 10 ) / 1000;
+        const be_at = ( media_runtime * 10 ) / 1000;
         
         this._wait_for_take_off = true;
         
-        log.log( 'Preparing for take off', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
+        logMessage( 'Preparing for takeoff...' );
         
-        for ( const [ name, client ] of clientManagerService.clientNameWithControllers ) {
+        for ( const [ , client ] of clientManager.clientNameWithControllers ) {
             client.pause( be_at, current_media.file_path );
         }
         
-        log.log( 'Instructed clients to pause', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
+        logMessage( 'Preparations for takeoff completed' );
     }
     
     public resume() {
@@ -111,12 +110,16 @@ export class Instructor {
             return;
         }
         
+        logMessage( 'Resuming...' );
+        
         this._paused = false;
         
         this.prepareForTakeOff();
     }
     
     public pause() {
+        
+        logMessage( 'Pausing...' );
         
         this._paused = true;
         
@@ -126,18 +129,20 @@ export class Instructor {
         
         let media_runtime = micro_since_startup - this._current_media_begin;
         
-        if(media_runtime < 0){
+        if ( media_runtime < 0 ) {
             media_runtime = 0;
         }
         
-        const be_at         = ( media_runtime * 10 ) / 1000;
+        const be_at = ( media_runtime * 10 ) / 1000;
         
-        for ( const [ mac, client ] of clientManagerService.clientNameWithControllers ) {
+        for ( const [ , client ] of clientManager.clientNameWithControllers ) {
             client.pause( be_at, current_media.file_path );
         }
     }
     
     public next() {
+        
+        logMessage( 'Skipping...' );
         
         this._current_media_begin = timer.currentMicroTickSinceStartup;
         
@@ -152,6 +157,8 @@ export class Instructor {
     
     public prev() {
         
+        logMessage( 'Reversing...' );
+        
         this._current_media_begin = timer.currentMicroTickSinceStartup;
         
         this.setCurrentMediaIndex( this.current_media_index - 1 );
@@ -165,15 +172,17 @@ export class Instructor {
     
     public scrub( time: number ) {
         
+        logMessage( 'Scrubbing...' );
+        
         const micro_since_startup = timer.currentMicroTickSinceStartup;
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
-        if ( time > current_media.duration || time < 0) {
+        if ( time > current_media.duration || time < 0 ) {
             return;
         }
         
-        const time_in_micro = time / 10;
+        const time_in_micro = time * 100;
         
         this._current_media_begin = micro_since_startup - time_in_micro;
         
@@ -185,12 +194,10 @@ export class Instructor {
     }
     
     private loadPlaylistsFromFile( path: string ) {
-        
-        const data = fs.readFileSync( path, 'utf-8' );
-        
-        const json = parseJSON( data );
-        
-        this._playlists = ZPlaylist.array().parse( json.playlists );
+        this._playlists = parseZodFromJSON(
+            ZPlaylist.array(),
+            fs.readFileSync( path, 'utf-8' )
+        );
     }
     
     private setCurrentPlaylist( id: number ) {
@@ -235,6 +242,7 @@ export class Instructor {
     }
     
     public get state(): IState {
+        
         if ( this._paused ) {
             return 'Paused';
         }

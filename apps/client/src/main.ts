@@ -7,19 +7,23 @@ import YAML from 'yaml';
 import { Obeyer } from './obeyer/obeyer';
 import { Anime4K } from './util';
 
-export const MainDirectory = __dirname;
-
-export let timer!: Timer;
-export let shaders!: string[];
+export let timer: Timer;
+export let shaders: string[];
 
 const bootstrap = async () => {
     
     const timerType = await select( {
         message: 'Select a timer type',
         choices: [
-            { name: 'Serial', value: 'Serial' },
-            { name: 'Network', value: 'Network' },
-            { name: 'None', value: 'None' }
+            { name   : 'Serial',
+                value: 'Serial'
+            },
+            { name   : 'Network',
+                value: 'Network'
+            },
+            { name   : 'None',
+                value: 'None'
+            }
         ]
     } );
     
@@ -53,19 +57,45 @@ const bootstrap = async () => {
     shaders = await select( {
         message: 'Select a video shader',
         choices: [
-            { name: 'None', value: [] },
-            { name: 'Anime4K Low-End A', value: Anime4K.LowEnd.A },
-            { name: 'Anime4K Low-End B', value: Anime4K.LowEnd.B },
-            { name: 'Anime4K Low-End C', value: Anime4K.LowEnd.C },
-            { name: 'Anime4K Low-End A + A', value: Anime4K.LowEnd.AA },
-            { name: 'Anime4K Low-End B + B', value: Anime4K.LowEnd.BB },
-            { name: 'Anime4K Low-End C + A', value: Anime4K.LowEnd.CA },
-            { name: 'Anime4K High-End A', value: Anime4K.HighEnd.A },
-            { name: 'Anime4K High-End B', value: Anime4K.HighEnd.B },
-            { name: 'Anime4K High-End C', value: Anime4K.HighEnd.C },
-            { name: 'Anime4K High-End A + A', value: Anime4K.HighEnd.AA },
-            { name: 'Anime4K High-End B + B', value: Anime4K.HighEnd.BB },
-            { name: 'Anime4K High-End C + A', value: Anime4K.HighEnd.CA }
+            { name   : 'None',
+                value: []
+            },
+            { name   : 'Anime4K Low-End A',
+                value: Anime4K.LowEnd.A
+            },
+            { name   : 'Anime4K Low-End B',
+                value: Anime4K.LowEnd.B
+            },
+            { name   : 'Anime4K Low-End C',
+                value: Anime4K.LowEnd.C
+            },
+            { name   : 'Anime4K Low-End A + A',
+                value: Anime4K.LowEnd.AA
+            },
+            { name   : 'Anime4K Low-End B + B',
+                value: Anime4K.LowEnd.BB
+            },
+            { name   : 'Anime4K Low-End C + A',
+                value: Anime4K.LowEnd.CA
+            },
+            { name   : 'Anime4K High-End A',
+                value: Anime4K.HighEnd.A
+            },
+            { name   : 'Anime4K High-End B',
+                value: Anime4K.HighEnd.B
+            },
+            { name   : 'Anime4K High-End C',
+                value: Anime4K.HighEnd.C
+            },
+            { name   : 'Anime4K High-End A + A',
+                value: Anime4K.HighEnd.AA
+            },
+            { name   : 'Anime4K High-End B + B',
+                value: Anime4K.HighEnd.BB
+            },
+            { name   : 'Anime4K High-End C + A',
+                value: Anime4K.HighEnd.CA
+            }
         ]
     } );
     

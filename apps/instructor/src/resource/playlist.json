@@ -1,0 +1,12 @@
+[
+    {
+        "id"   : 0,
+        "name" : "Serienmarathon #8",
+        "media": [
+            {
+                "name"     : "Folge 5",
+                "file_path": "five.mp4"
+            }
+        ]
+    }
+]

@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as process from 'process';
-import { MainDirectory } from '../../main';
 
 class BazaarUtil {
     
@@ -21,7 +20,7 @@ class BazaarUtil {
     }
     
     public getResource( ...resource: string[] ) {
-        return path.join( MainDirectory, 'assets', ...resource );
+        return path.join( __dirname, 'resource', ...resource );
     }
     
     private generatedStrings = new Set();

@@ -1,16 +1,14 @@
-import { IDeviceConfig, IServerToClientCommand, ZClientToServerCommand, ZDeviceConfig, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
-import { ObservableMap, parseJSON } from '@sync-maestro/shared-utils';
-import { z } from 'zod';
-import { log } from '../logger';
-import { databaseService } from './database.service';
-import { socketService } from './socket.service';
+import { IDeviceConfig, ZClientToServerCommand, ZDeviceConfig, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
+import { ObservableMap, parseZod, parseZodFromJSON } from '@sync-maestro/shared-utils';
+import { logClient } from './util/logger.util';
+import { clientSocket, databaseManager } from './main';
 
-export class ClientManagerService {
+export class ClientManager {
     
-    public clientNameToConfigMap: Map<string, z.infer<typeof ZDeviceConfig>> = new Map();
-    public clientNameToReadyForTakeoff: ObservableMap<string, boolean>       = new ObservableMap();
+    public clientNameToConfigMap: Map<string, IDeviceConfig>           = new Map();
+    public clientNameToReadyForTakeoff: ObservableMap<string, boolean> = new ObservableMap();
     
-    private readonly defaultConfig = ZDeviceConfig.parse( {
+    private readonly defaultConfig = parseZod( ZDeviceConfig, {
         type       : 'Video',
         device     : 'Monitor',
         displayName: 'Unnamed Device',
@@ -23,26 +21,31 @@ export class ClientManagerService {
             fit        : 'ContainImage',
             resolution : '1080p'
         }
-    } as z.infer<typeof ZDeviceConfig> );
+    } );
     
     constructor() {
-        socketService.clientNameConnectedSubject.subscribe( ( id ) => this.onClientConnect( id ) );
-        socketService.clientNameDisconnectedSubject.subscribe( ( id ) => this.onClientDisconnect( id ) );
-        socketService.clientNameMessageSubject.subscribe( ( message ) => this.onClientMessage( message[ 0 ], message[ 1 ] ) );
+        clientSocket.connectedSubject.subscribe( ( name ) => this.onClientConnect( name ) );
+        clientSocket.disconnectedSubject.subscribe( ( name ) => this.onClientDisconnect( name ) );
+        clientSocket.messageSubject.subscribe( ( message ) => this.onClientMessage( message[ 0 ], message[ 1 ] ) );
     }
     
     private async onClientConnect( name: string ) {
         
         const config = ZDeviceConfig.safeParse(
-            await databaseService.get( name )
+            await databaseManager.get( name )
         );
         
         if ( config.success ) {
             this.clientNameToConfigMap.set( name, config.data );
         } else {
             this.clientNameToConfigMap.set( name, this.defaultConfig );
-            await databaseService.set( name, this.clientNameToConfigMap.get( name ) );
+            await databaseManager.set( name, this.clientNameToConfigMap.get( name ) );
         }
+        
+        logClient(
+            'neutral', [undefined, name ],
+            'Client successful registered'
+        );
         
         this.clientNameToReadyForTakeoff.set( name, false );
     }
@@ -54,7 +57,7 @@ export class ClientManagerService {
     
     private onClientMessage( name: string, message: string ) {
         
-        const command = ZClientToServerCommand.parse( parseJSON( message ) );
+        const command = parseZodFromJSON( ZClientToServerCommand, message );
         
         switch ( command.type ) {
             
@@ -73,7 +76,7 @@ export class ClientManagerService {
             }
         ][] = [];
         
-        for ( const [ name, ws ] of socketService.registeredClientNameToSocketMap.entries() ) {
+        for ( const [ name, ws ] of clientSocket.nameToSocketMap.entries() ) {
             
             result.push( [
                 name,
@@ -82,28 +85,34 @@ export class ClientManagerService {
                         
                         this.clientNameToReadyForTakeoff.set( name, false );
                         
-                        const cmd = ZServerToClientCommand.parse( {
+                        const cmd = parseZod( ZServerToClientCommand, {
                             type: 'PauseImmediatelyAt',
                             be_at,
                             url
-                        } as IServerToClientCommand );
+                        } );
                         
                         ws.send( JSON.stringify( cmd ) );
                         
-                        log.log( 'Sent to (name-' + name + '): ' + JSON.stringify( cmd ) );
+                        logClient(
+                            'neutral', [ undefined, name ],
+                            'Sent: ' + JSON.stringify( cmd )
+                        );
                     },
                     
                     resume: ( macro: number, micro: number ) => {
                         
-                        const cmd = ZServerToClientCommand.parse( {
+                        const cmd = parseZod( ZServerToClientCommand, {
                             type: 'ResumeWhen',
                             macro,
                             micro
-                        } as IServerToClientCommand );
+                        } );
                         
                         ws.send( JSON.stringify( cmd ) );
                         
-                        log.log( 'Sent to (name-' + name + '): ' + JSON.stringify( cmd ) );
+                        logClient(
+                            'neutral', [ undefined, name ],
+                            'Sent: ' + JSON.stringify( cmd )
+                        );
                     }
                 }
             ] );
@@ -118,8 +127,6 @@ export class ClientManagerService {
     
     public async editDeviceConfig( name: string, config: IDeviceConfig ) {
         this.clientNameToConfigMap.set( name, config );
-        await databaseService.set( name, config );
+        await databaseManager.set( name, config );
     }
 }
-
-export const clientManagerService = new ClientManagerService();

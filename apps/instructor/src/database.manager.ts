@@ -1,7 +1,7 @@
 import Keyv from 'keyv';
 import * as process from 'process';
 
-export class DatabaseService {
+export class DatabaseManager {
     
     private keyv = new Keyv( 'sqlite://' + process.cwd() + '/instructor.sqlite' );
     
@@ -21,5 +21,3 @@ export class DatabaseService {
         await this.keyv.clear();
     }
 }
-
-export const databaseService = new DatabaseService();

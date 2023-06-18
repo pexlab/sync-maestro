@@ -9,7 +9,7 @@
     "serve-instructor": "nx serve instructor",
     "serve-supervisor": "nx serve supervisor --ssl",
     "serve-debugger": "nx serve debugger",
-    "bundle-client": "nx build client --skip-nx-cache && cd dist/apps/client && npm i && pkg main.js --output ../binary/client --targets node18-macos-arm64,node18-win-arm64 --assets resources/**/*"
+    "compile-client": "nx compile client"
   },
   "private": true,
   "dependencies": {
@@ -72,6 +72,10 @@
     "@nx/node": "^16.3.1",
     "@nx/webpack": "16.3.1",
     "@nx/workspace": "16.3.1",
+    "@rollup/plugin-commonjs": "^25.0.1",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-typescript": "^11.1.1",
     "@schematics/angular": "~16.0.0",
     "@types/ip": "^1.1.0",
     "@types/jest": "^29.4.0",

@@ -53,7 +53,7 @@ export class Obeyer {
                                 return;
                             }
                             
-                            logger.obeyer.log( 'Received: ' + message.toString(), timer.currentMacroTick + 'M:' + timer.currentMicroTick );
+                            logger.obeyer.log( 'Received: ' + message.toString() );
                             
                             try {
                                 
@@ -76,7 +76,7 @@ export class Obeyer {
                                             
                                             await this.vlc.control.loadFile( path.join( os.homedir(), parsed.url ) );
                                             
-                                            logger.obeyer.log( 'Loaded file ' + parsed.url, timer.currentMacroTick + 'M:' + timer.currentMicroTick );
+                                            logger.obeyer.log( 'Loaded file ' + parsed.url );
                                         }
                                         
                                         await this.vlc.control.pause_at( parsed.be_at );
@@ -94,7 +94,7 @@ export class Obeyer {
                                             micro: parsed.micro
                                         };
                                         
-                                        logger.obeyer.log( 'Resuming when it strikes ' + parsed.macro + 'M:' + parsed.micro + 'm', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
+                                        logger.obeyer.log( 'Resuming when it strikes ' + parsed.macro + 'M:' + parsed.micro + 'm' );
                                         
                                         break;
                                 }
@@ -151,7 +151,7 @@ export class Obeyer {
             
             if ( macro === this.resumeWhen.macro && micro === this.resumeWhen.micro ) {
                 this.vlc.control.resume();
-                logger.obeyer.log( 'Resumed', timer.currentMacroTick + 'M:' + timer.currentMicroTick );
+                logger.obeyer.log( 'Resumed' );
             }
         } );
     }

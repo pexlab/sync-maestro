@@ -17,7 +17,7 @@
         "main": "apps/instructor/src/main.ts",
         "tsConfig": "apps/instructor/tsconfig.app.json",
         "assets": [
-          "apps/instructor/src/assets"
+          "apps/instructor/src/resource"
         ],
         "isolatedConfig": true,
         "webpackConfig": "apps/instructor/webpack.config.js"
