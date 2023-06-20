@@ -314,7 +314,10 @@ setInterval(() => {
   if (!timer) {
     stats.setLine(2, "{bold}Conductor:{/bold} " + "Not initialized");
   } else {
-    stats.setLine(2, "{bold}Conductor:{/bold} " + timer.currentMacroTick + "M:" + timer.currentMicroTick + "µ");
+    const macro_string = (timer.currentMacroTick < 100 ? "0" : "") + (timer.currentMacroTick < 10 ? "0" : "") + timer.currentMacroTick
+    const micro_string = (timer.currentMicroTick < 10 ? "0" : "") + timer.currentMicroTick
+    
+    stats.setLine(2, "{bold}Conductor:{/bold} " + macro_string + "M:" + micro_string + "µ");
   }
 
   stats.setLine(3, "{bold}Clock:{/bold} " + format(new Date(), "HH':'mm':'ss':'SS") + " o'clock");
