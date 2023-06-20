@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "client": "nx build client --skip-nx-cache --configuration development && node dist/apps/client/main.js",
+    "client": "nx build client --skip-nx-cache --configuration development && node dist/apps/client/Sync-Maestro-Client.js",
     "instructor": "nx build instructor --skip-nx-cache && node dist/apps/instructor/main.js",
     "serve-client": "nx serve client",
     "serve-instructor": "nx serve instructor",
