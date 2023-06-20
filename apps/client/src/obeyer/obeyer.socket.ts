@@ -19,7 +19,7 @@ export class ObeyerSocket {
             skip( 1 )
         ).subscribe( ( status ) => {
             if ( status ) {
-                logger.obeyerSocket.log( 'Connection to instructor established' );
+                logger.obeyerSocket.success( 'Connection to instructor established' );
             } else {
                 logger.obeyerSocket.warn( 'Connection to instructor terminated' );
             }

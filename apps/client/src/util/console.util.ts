@@ -1,5 +1,9 @@
 import blessed from "blessed";
 import { Subject, take } from "rxjs";
+import * as os from "os";
+import { timer } from "../main";
+import { format } from "date-fns";
+import process from "process";
 
 const screen = blessed.screen({
   smartCSR: true
@@ -77,21 +81,24 @@ const logo = blessed.box({
   }
 });
 
-const consoleWindow = blessed.box({
+const report = blessed.box({
   top: 9,
   left: 3,
   width: "60%-2",
   height: "100%-13",
-  content: "Hello, world!",
   style: {
     fg: "white",
     bg: "black"
+  },
+  border: {
+    type: "bg"
   },
   padding: 1,
   keys: true,
   mouse: true,
   scrollable: true,
   focusable: true,
+  tags: true,
   scrollbar: {
     style: {
       bg: "white"
@@ -104,20 +111,45 @@ const list = blessed.list({
   left: 3,
   width: "60%-2",
   height: "100%-13",
-  keys: true,
-  mouse: true,
-  content: "{center}Console{/center}",
   style: {
     selected: {
-      bg: "green",
-      fg: "black"
-    }
-  }
+      bg: "red",
+      fg: "white"
+    },
+    bg: "black",
+    fg: "white"
+  },
+  border: {
+    type: "bg"
+  },
+  padding: 1
 });
 
-list.hide();
+const listDescription = blessed.box({
+  bottom: 0,
+  left: 0,
+  right: 0,
+  height: "shrink",
+  style: {
+    fg: "white",
+    bg: "black",
+    border: {
+      bg: "black"
+    }
+  },
+  border: {
+    type: "line"
+  },
+  padding: 1,
+  tags: true
+});
 
-const label = blessed.box({
+list.append(listDescription);
+
+list.hide();
+listDescription.hide();
+
+const mainLabel = blessed.box({
   parent: screen,
   top: 8,
   left: 2,
@@ -135,53 +167,163 @@ const label = blessed.box({
 
 const optionSelected = new Subject<string>();
 
-list.on("select", (item, index) => {
-  optionSelected.next(item.getText());
+const optionHovered = new Subject<string>();
+
+let selected = 0;
+let listOptions: [string, string, string | undefined][];
+
+list.on("keypress", (ch, key) => {
+
+  if (key.name === "enter") {
+    optionSelected.next(listOptions[selected][0]);
+    return;
+  }
+
+  if (key.name === "up" || key.name === "down") {
+
+    if (key.name === "up") {
+      selected--;
+    } else {
+      selected++;
+    }
+
+    if (selected < 0) {
+      selected = listOptions.length - 1;
+    } else if (selected >= listOptions.length) {
+      selected = 0;
+    }
+
+    list.select(selected);
+
+    optionHovered.next(listOptions[selected][0]);
+  }
+});
+
+const statsLabel = blessed.box({
+  parent: screen,
+  top: 8,
+  right: 4,
+  width: "35%",
+  height: "25%",
+  content: "{center}{bold}Statistics{/bold}{/center}",
+  tags: true,
+  style: {
+    fg: "black",
+    bg: "#939393"
+  },
+  shadow: true,
+  focusable: false
+});
+
+const stats = blessed.box({
+  top: 9,
+  right: 5,
+  width: "35%-2",
+  height: "25%-2",
+  tags: true,
+  border: {
+    type: "bg"
+  },
+  style: {
+    bg: "black"
+  },
+  padding: 1
 });
 
 screen.append(background);
 screen.append(art);
 screen.append(logo);
-screen.append(label);
+screen.append(mainLabel);
 screen.append(list);
-screen.append(consoleWindow);
+screen.append(report);
+screen.append(statsLabel);
+screen.append(stats);
 
-consoleWindow.hide();
+report.hide();
 
-export const askList = (prompt: string, options: [string, string][]) => {
+export const askList = (prompt: string, options: [string, string, string | undefined][]) => {
+
+  listOptions = options;
 
   return new Promise<string>((resolve) => {
 
     list.show();
-    consoleWindow.hide();
+    report.hide();
 
-    label.setContent("{center}" + prompt + "{/center}");
+    mainLabel.setContent("{center}{bold}" + prompt + "{/bold}{/center}");
 
     list.clearItems();
     list.setItems(options.map((option) => option[0]));
 
+    const hoverSubscription = optionHovered.subscribe((option) => {
+
+      let description = "";
+
+      if (option) {
+        const optionArray = options.find(o => o[0] === option);
+        if (optionArray) {
+          description = optionArray[2] || description;
+        }
+      }
+
+      listDescription.setContent(description);
+
+      if (description.length > 0) {
+        listDescription.show();
+      } else {
+        listDescription.hide();
+      }
+
+      screen.render();
+    });
+
     optionSelected.pipe(take(1)).subscribe((option) => {
 
+      selected = 0;
+
       list.hide();
-      consoleWindow.show();
+      report.show();
 
-      label.setContent("{center}Console{/center}");
+      mainLabel.setContent("{center}{bold}Report{/bold}{/center}");
 
-      consoleWindow.focus();
+      report.focus();
 
       screen.render();
 
+      hoverSubscription.unsubscribe();
       resolve(options.find(o => o[0] === option)![1]);
     });
 
     list.focus();
 
+    optionHovered.next(options[0][0]);
+
     screen.render();
   });
 };
 
+setInterval(() => {
+
+  stats.setLine(0, "{bold}CPU:{/bold} " + os.loadavg()[0].toFixed(0) + "% load");
+
+  const memory = os.totalmem() / 1024 / 1024 / 1024;
+  const memoryFree = os.freemem() / 1024 / 1024 / 1024;
+
+  stats.setLine(1, "{bold}Memory:{/bold} " + memoryFree.toFixed(1) + "GB free of " + memory.toFixed(1) + "GB");
+
+  if (!timer) {
+    stats.setLine(2, "{bold}Conductor:{/bold} " + "Not initialized");
+  } else {
+    stats.setLine(2, "{bold}Conductor:{/bold} " + timer.currentMacroTick + "M:" + timer.currentMicroTick + "µ");
+  }
+
+  stats.setLine(3, "{bold}Clock:{/bold} " + format(new Date(), "HH':'mm':'ss':'SS") + " o'clock");
+
+  screen.render();
+}, 10);
+
 export const log = (text: string) => {
-  consoleWindow.pushLine(text);
+  report.pushLine(text);
   screen.render();
 };
 

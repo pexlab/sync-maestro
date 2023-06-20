@@ -1,6 +1,14 @@
 {
-    "assets": [
-        "../../node_modules/@serialport/**/*",
-        "src/resource/**/*"
-    ]
+  "assets": [
+    "../../node_modules/@serialport/**/*",
+    "../../node_modules/blessed/**/*",
+    "src/resource/**/*"
+  ],
+  "targets": [
+    "node18-linux-arm64",
+    "node18-linux-x64",
+    "node18-macos-arm64",
+    "node18-win32-x64"
+  ],
+  "outputPath": "dist/apps/client/binary"
 }

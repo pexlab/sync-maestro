@@ -11,8 +11,10 @@
       ],
       "defaultConfiguration": "production",
       "options": {
+        "deleteOutputPath": true,
         "platform": "node",
         "outputPath": "dist/apps/client",
+        "outputFileName": "Sync-Maestro-Client.js",
         "format": [
           "cjs"
         ],
@@ -48,6 +50,9 @@
           "format": [
             "esm"
           ],
+          "external": [
+            "node_modules/*"
+          ],
           "esbuildOptions": {
             "sourcemap": true,
             "outExtension": {
@@ -63,7 +68,7 @@
         "commands": [
           "nx run client:build --configuration compile",
           "rollup -c apps/client/rollup.config.js --bundleConfigAsCjs",
-          "pkg dist/apps/client/bundle.cjs --config apps/client/pkg.config.json --output dist/apps/client/binary --target node18-linux-arm64"
+          "pkg dist/apps/client/Sync-Maestro-Client.cjs --config apps/client/pkg.config.json"
         ],
         "parallel": false
       }

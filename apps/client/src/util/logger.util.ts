@@ -1,48 +1,43 @@
-import { ReadableNumber } from '@sync-maestro/shared-utils';
-import chalk from 'chalk';
 import { format } from 'date-fns';
 import { timer } from '../main';
+import {log} from './console.util';
 
 export class Logger {
-    
+
     private prefix: string | undefined;
-    
+
     constructor( prefix?: string ) {
         this.prefix = prefix;
     }
-    
-    private formatMessage( message: string[], prefix?: string ) {
-        
-        const currentTime = format( new Date(), 'HH\':\'mm\' \'ss\'s \'SS\'ms\'' );
-        
-        const currentTick = ReadableNumber( timer.currentMacroTick, {
-            sign     : 'negative-only',
-            separator: false,
-            padding  : '000'
-        } ) + ' Macro, ' + ReadableNumber( timer.currentMicroTick, {
-            sign     : 'negative-only',
-            separator: false,
-            padding  : '000'
-        } ) + ' Micro';
-        
-        return (
-            chalk.bgYellowBright(
-                chalk.black(
-                    'Timer at ' + currentTick + ' | Clock at ' + currentTime + ( prefix ? ' | ' + prefix + chalk.reset( '\n' ) : chalk.reset( '\n' ) )
-                )
-            ) + message.join( ' ' )
-        ).trim() + '\n';
+
+    private messagePrefix( prefix?: string ) {
+
+        const now = new Date();
+
+        const oClock = format( now, 'HH\':\'mm\':\'ss\':\'SS' );
+
+        return `{black-fg}{yellow-bg}{bold} ℹ ` +
+          ( prefix ? `${prefix}  ×  ` : ``) +
+          `Conductor at ${timer.currentMacroTick}M:${timer.currentMicroTick}µ  ×  ` +
+          `${oClock} o'clock` +
+          `\n{/bold}{/yellow-bg}{/black-fg}`;
     }
-    
+
+
     public log( ...message: unknown[] ) {
-        console.log( chalk.green( this.formatMessage( message.map(e => String(e)), this.prefix ) ) );
+        log( '{bright-grey-fg}' +  this.messagePrefix( this.prefix ) + message.map(e => String(e)).join(" ") + '{/bright-grey-fg}\n\n'  );
     }
-    
+
+    public success( ...message: unknown[] ) {
+        log( '{bright-green-fg}' +  this.messagePrefix( this.prefix ) + "✓ " + message.map(e => String(e)).join(" ") + '{/bright-green-fg}\n\n'  );
+    }
+
     public warn( ...warning: unknown[] ) {
-        console.warn( chalk.yellow( this.formatMessage( warning.map(e => String(e)), this.prefix ) ) );
+        log( '{bright-yellow-fg}' +  this.messagePrefix( this.prefix ) + "⚠ "+ warning.map(e => String(e)).join(" ") + '{/bright-yellow-fg}\n\n'  );
+
     }
-    
+
     public error( ...error: unknown[] ) {
-        console.error( chalk.red( this.formatMessage( error.map(e => String(e)), this.prefix ) ) );
+        log( '{bright-red-fg}' +  this.messagePrefix( this.prefix ) + "✖ " + error.map(e => String(e)).join(" ") + '{/bright-red-fg}\n\n'  );
     }
 }

@@ -4,14 +4,15 @@ import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 
 export default {
-    input: 'dist/apps/client/main.mjs',
+    input: 'dist/apps/client/Sync-Maestro-Client.mjs',
     output: {
-        file: 'dist/apps/client/bundle.cjs',
+        file: 'dist/apps/client/Sync-Maestro-Client.cjs',
         format: 'cjs',
         sourcemap: true
     },
     external: [
         "serialport",
+        "blessed"
     ],
     plugins: [
         nodeResolve(),

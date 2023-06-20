@@ -1,6 +1,6 @@
 import { IClientToServerCommand, ZClientToServerCommand, ZServerToClientCommand } from '@sync-maestro/shared-interfaces';
 import { parseJSON } from '@sync-maestro/shared-utils';
-import Bonjour from 'bonjour-service';
+import { Bonjour } from 'bonjour-service';
 import macaddress from 'macaddress';
 import * as os from 'os';
 import * as path from 'path';

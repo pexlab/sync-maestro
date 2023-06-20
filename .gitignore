@@ -3,7 +3,6 @@
 instructor.sqlite
 apps/client/src/resource/binary/**/*
 apps/instructor/src/assets/binary/**/*
-demo.mp4
 
 .env
 
