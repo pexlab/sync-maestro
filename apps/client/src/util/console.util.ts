@@ -320,7 +320,7 @@ setInterval(() => {
     stats.setLine(2, "{bold}Conductor:{/bold} " + macro_string + "M:" + micro_string + "µ");
   }
 
-  stats.setLine(3, "{bold}Clock:{/bold} " + format(new Date(), "HH':'mm':'ss':'SS") + " o'clock");
+  stats.setLine(3, "{bold}Clock:{/bold} " + format(new Date(), "HH':'mm':'ss'.'SSS") + " o'clock");
 
   screen.render();
 }, 10);
