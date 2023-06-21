@@ -1,60 +1,39 @@
-import * as fs from 'fs';
+import { SerialPort } from 'serialport'
 
-const serialPortPath = '/dev/tty.usbserial-AH06SQPE'; // Replace with the actual path of your serial port
+const port = new SerialPort({
+    path    : 'COM7',
+    baudRate: 9600,
+    dataBits: 8,
+    stopBits: 1,
+    parity  : 'none',
+    highWaterMark: 1,
+    autoOpen: true
+});
 
 let last = performance.now();
 let skip = false;
 
-fs.open(serialPortPath, fs.constants.O_RDONLY | fs.constants.O_NONBLOCK, (err, fd) => {
-    if (err) {
-        console.error('Error opening serial port:', err);
+port.on('data', (data) => {
+    
+    const b = data[0];
+    
+    if(b === 0x00){
+        skip = true;
         return;
     }
     
-    const readFromSerial = () => {
-        const buffer = Buffer.alloc(1);
-        
-        fs.read(fd, buffer, 0, 1, null, (err, bytesRead) => {
-            if (err) {
-                //console.error('Error reading from serial port:', err);
-                readFromSerial();
-                
-                return;
-            }
-            
-            if (bytesRead > 0) {
-                // Process the received byte
-                
-                const b = buffer.slice(0, bytesRead)[0];
-                
-                if(b === 0x00){
-                    skip = true;
-                    readFromSerial();
-                    return;
-                }
-                
-                if(b === 0xFF){
-                    skip = false;
-                    readFromSerial();
-                    return;
-                }
-                
-                if(skip){
-                    readFromSerial();
-                    return;
-                }
-                
-                const now = performance.now();
-                
-                console.log(b + ": " + (now-last))
-                
-                last = now;
-            }
-            
-            // Continue reading from the serial port
-            readFromSerial();
-        });
-    };
+    if(b === 0xFF){
+        skip = false;
+        return;
+    }
     
-    readFromSerial(); // Start reading from the serial port
+    if(skip){
+        return;
+    }
+    
+    const now = performance.now();
+    
+    console.log(b + ": " + (now-last))
+    
+    last = now;
 });
