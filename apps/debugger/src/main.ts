@@ -24,7 +24,9 @@ port.on('data', (data) => {
     const now = process.hrtime();
     const elapsedHrtime = process.hrtime(last);
     
-    console.log(byte + ": " + elapsedHrtime[0] * 1000 + elapsedHrtime[1] / 1e6)
+    const diff = elapsedHrtime[0] * 1000 + elapsedHrtime[1] / 1e6;
+    
+    console.log(byte + ": " + ((10 - diff) * -1))
     
     last = now;
 });
