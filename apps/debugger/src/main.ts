@@ -2,7 +2,7 @@ import { SerialPort } from "serialport";
 import process from "process";
 
 const port = new SerialPort({
-  path: "/dev/cu.usbserial-AH06SQPE",
+  path: "COM8",
   baudRate: 9600,
   dataBits: 8,
   stopBits: 1,
@@ -30,8 +30,9 @@ port.on("data", (data) => {
 
   const now = process.hrtime();
   const elapsedHrtime = process.hrtime(last);
+  const diff = elapsedHrtime[0] * 1000 + elapsedHrtime[1] / 1e6
 
-  console.log(byte + ": " + elapsedHrtime[0] * 1000 + elapsedHrtime[1] / 1e6);
+  console.log(byte + ": " + ((10 - diff) * -1));
 
   last = now;
 });
