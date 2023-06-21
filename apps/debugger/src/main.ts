@@ -33,7 +33,7 @@ port.on('data', (data) => {
     
     const now = performance.now();
     
-    console.log(b + ": " + (now-last))
+    console.log(b + ": " + ((10 - (now-last)) * -1))
     
     last = now;
 });
