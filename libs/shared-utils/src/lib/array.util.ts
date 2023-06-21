@@ -1,4 +1,4 @@
-export class MaxArray<T> extends Array<T> {
+export class OverflowArray<T> extends Array<T> {
     
     constructor(public readonly max: number) {
         super();
