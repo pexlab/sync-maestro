@@ -1,4 +1,5 @@
 import { SerialPort } from 'serialport'
+import process from 'process';
 
 const port = new SerialPort({
     path    : 'COM7',
@@ -10,7 +11,7 @@ const port = new SerialPort({
     autoOpen: true
 });
 
-let last = performance.now();
+let last = process.hrtime();
 
 port.on('data', (data) => {
     
@@ -19,10 +20,10 @@ port.on('data', (data) => {
     if(byte === 0x00 || byte === 0xFF){
         return;
     }
+
+    const now = process.hrtime();
     
-    const now = performance.now();
-    
-    console.log(byte + ": " + (now-last))
+    console.log(byte + ": " + process.hrtime(last))
     
     last = now;
 });
