@@ -2,7 +2,7 @@ import { SerialPort } from "serialport";
 import process from "process";
 
 const port = new SerialPort({
-  path: "COM7",
+  path: "/dev/cu.usbserial-AH06SQPE",
   baudRate: 9600,
   dataBits: 8,
   stopBits: 1,

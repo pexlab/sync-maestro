@@ -302,7 +302,7 @@ export const askList = (prompt: string, options: [string, string, string | undef
   });
 };
 
-setInterval(() => {
+timer.onTick.subscribe((tick) => {
 
   stats.setLine(0, "{bold}CPU:{/bold} " + os.loadavg()[0].toFixed(0) + "% load");
 
@@ -316,14 +316,15 @@ setInterval(() => {
   } else {
     const macro_string = (timer.currentMacroTick < 100 ? "0" : "") + (timer.currentMacroTick < 10 ? "0" : "") + timer.currentMacroTick
     const micro_string = (timer.currentMicroTick < 10 ? "0" : "") + timer.currentMicroTick
-    
+
     stats.setLine(2, "{bold}Conductor:{/bold} " + macro_string + "M:" + micro_string + "µ");
   }
 
   stats.setLine(3, "{bold}Clock:{/bold} " + format(new Date(), "HH':'mm':'ss'.'SSS") + " o'clock");
 
   screen.render();
-}, 10);
+
+} );
 
 export const log = (text: string) => {
   report.pushLine(text);

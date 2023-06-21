@@ -6,11 +6,20 @@ export class SerialTimer implements Timer {
     
     constructor( serial: string ) {
         this.ttl = new SerialPort( {
+            autoOpen: true,
             path    : serial,
             baudRate: 9600,
             dataBits: 8,
             stopBits: 1,
-            parity  : 'none'
+            parity: "none",
+            highWaterMark: 1,
+            xon: false,
+            xoff: false,
+            xany: true,
+            rtscts: false,
+            hupcl: false,
+            vmin: 0,
+            vtime: 0
         } );
     }
     
