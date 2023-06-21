@@ -11,29 +11,18 @@ const port = new SerialPort({
 });
 
 let last = performance.now();
-let skip = false;
 
 port.on('data', (data) => {
     
-    const b = data[0];
+    const byte = data[0];
     
-    if(b === 0x00){
-        skip = true;
-        return;
-    }
-    
-    if(b === 0xFF){
-        skip = false;
-        return;
-    }
-    
-    if(skip){
+    if(byte === 0x00 || byte === 0xFF){
         return;
     }
     
     const now = performance.now();
     
-    console.log(b + ": " + (now-last))
+    console.log(byte + ": " + (now-last))
     
     last = now;
 });
