@@ -13,6 +13,7 @@
     "compilerOptions": {
         "esModuleInterop" : true,
         "strict"          : true,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "noImplicitOverride": true
     }
 }
