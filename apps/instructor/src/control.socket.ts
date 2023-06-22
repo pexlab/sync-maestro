@@ -26,6 +26,7 @@ export class ControlSocket {
                 switch ( command.type ) {
                     
                     case 'TogglePlayback':
+                        instructor.toggle();
                         break;
                     
                     case 'Resume':
