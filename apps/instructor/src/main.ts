@@ -1,5 +1,5 @@
 import { select } from '@inquirer/prompts';
-import { Timer } from '@sync-maestro/shared-utils';
+import { Timer } from '@sync-maestro/shared-interfaces';
 import process from 'process';
 import { SerialPort } from 'serialport';
 import { SerialTimer } from 'shared-backend-utils';
@@ -40,33 +40,7 @@ async function bootstrap() {
     
     databaseManager = new DatabaseManager();
     
-    timer = new SerialTimer( port , {
-        handleFaultyTick: 'Replace',
-        macroDiscrepancy: {
-            exceedThreshold: {
-                disable: 0,
-                warning: 0,
-                error: 0
-            },
-            undercutThreshold:{
-                disable: 0,
-                warning: 0,
-                error: 0
-            }
-        },
-        microDiscrepancy: {
-            exceedThreshold: {
-                disable: 0,
-                warning: 0,
-                error: 0
-            },
-            undercutThreshold:{
-                disable: 0,
-                warning: 0,
-                error: 0
-            }
-        }
-    });
+    timer = new SerialTimer( port );
     
     clientSocket = new ClientSocket();
     

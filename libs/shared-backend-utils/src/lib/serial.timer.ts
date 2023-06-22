@@ -1,16 +1,12 @@
-import { ITimerSettings } from '@sync-maestro/shared-interfaces';
-import { Timer } from '@sync-maestro/shared-utils';
+import { Timer } from '@sync-maestro/shared-interfaces';
+import { Subject } from 'rxjs';
 import { SerialPort } from 'serialport';
 
-export class SerialTimer extends Timer {
+export class SerialTimer implements Timer {
     
-    private ttl: SerialPort;
-    
-    constructor( serial: string, settings: ITimerSettings ) {
-        super(settings);
-        
+    constructor( serial: string ) {
         this.ttl = new SerialPort( {
-            autoOpen: false,
+            autoOpen: true,
             path    : serial,
             baudRate: 9600,
             dataBits: 8,
@@ -27,37 +23,118 @@ export class SerialTimer extends Timer {
         } );
     }
     
-    public override enable(): boolean {
+    public onTick      = new Subject<void>;
+    public onMacroTick = new Subject<{ tick: number; ticks_since_startup: number }>;
+    public onMicroTick = new Subject<{ tick: number; ticks_since_startup: number }>;
+    
+    private _enabled = false;
+    
+    private _macroTick              = 1;
+    private _microTick              = 0;
+    private _macroTicksSinceStartup = 0;
+    private _microTicksSinceStartup = 0;
+    
+    private ttl;
+    
+    public get currentMacroTick(): number {
+        return this._macroTick;
+    }
+    
+    public get currentMicroTick(): number {
+        return this._microTick;
+    }
+    
+    public get currentMacroTickSinceStartup(): number {
+        return this._macroTicksSinceStartup;
+    }
+    
+    public get currentMicroTickSinceStartup(): number {
+        return this._microTicksSinceStartup;
+    }
+    
+    public get enabled(): boolean {
+        return this._enabled;
+    }
+    
+    public enable(): void {
         
-        const enabled = super.enable();
-        
-        if ( !enabled ) {
-            return false;
+        if ( this._enabled ) {
+            return;
         }
         
-        if(this.ttl.isOpen){
-            this.ttl.resume();
-        }else{
-            this.ttl.open();
-        }
+        let buffer = Buffer.alloc( 0 );
+        
+        let startByte: 0 | 255 | null = null;
         
         this.ttl.on( 'data', ( data ) => {
             
-            this.data(data[0])
+            buffer = Buffer.concat( [ buffer, data ] );
+            
+            while ( buffer.length > 0 ) {
+                
+                if ( startByte === null ) {
+                    
+                    if ( buffer[ 0 ] === 255 || buffer[ 0 ] === 0 ) {
+                        startByte = buffer[ 0 ];
+                    }
+                    
+                    buffer = buffer.slice( 1 );
+                    
+                } else {
+                    
+                    if ( buffer.length < 1 ) {
+                        break;
+                    }
+                    
+                    const payload = buffer.slice( 0, 1 );
+                    
+                    buffer = buffer.slice( 1 );
+                    
+                    const tick = payload[ 0 ];
+                    
+                    /* Macro Tick */
+                    if ( startByte === 0 ) {
+                        
+                        this._macroTick = tick;
+                        this._macroTicksSinceStartup++;
+                        
+                        this._microTick = 0x00;
+                        
+                        this.onMacroTick.next( {
+                            tick               : this._macroTick,
+                            ticks_since_startup: this._macroTicksSinceStartup
+                        } );
+                    }
+                    
+                    /* Micro Tick */
+                    if ( startByte === 255 ) {
+                        this._microTick = tick - 1;
+                    }
+                    
+                    this._microTicksSinceStartup++;
+                    
+                    this.onMicroTick.next( {
+                        tick               : this._microTick,
+                        ticks_since_startup: this._microTicksSinceStartup
+                    } );
+                    
+                    this.onTick.next();
+                    
+                    startByte = null;
+                }
+            }
         } );
-        
-        return true;
     }
     
-    public override disable(): boolean{
-        const disabled = super.disable();
+    public disable(): void {
         
-        if ( !disabled ) {
-            return false;
+        if ( !this._enabled ) {
+            return;
         }
         
-        this.ttl.pause();
-        
-        return true;
+        this._macroTick              = 1;
+        this._microTick              = 0;
+        this._macroTicksSinceStartup = 0;
+        this._microTicksSinceStartup = 0;
     }
 }

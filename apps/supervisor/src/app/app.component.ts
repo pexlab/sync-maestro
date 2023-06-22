@@ -48,7 +48,7 @@ export class AppComponent implements AfterViewInit {
     
     public activeDevices: z.infer<typeof ZRegisteredDevice>[] = [];
     
-    public timer = new WebSerialTimer(null, {});
+    public timer = new WebSerialTimer();
     
     constructor(
         private iconReg: SvgIconRegistryService,
@@ -169,15 +169,6 @@ export class AppComponent implements AfterViewInit {
             } );
             
         }, 500 );
-    }
-    
-    public resetStatistics(){
-        this.timer.disable();
-        
-        ( navigator as any ).serial.requestPort().then( ( port: any ) => {
-            this.timer.setPort(port);
-            this.timer.enable();
-        })
     }
     
     public configureDevice( device: z.infer<typeof ZRegisteredDevice> ) {
