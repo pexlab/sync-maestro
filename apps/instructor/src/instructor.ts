@@ -187,12 +187,6 @@ export class Instructor {
         
         const current_media = this.current_playlist.media[ this._current_media_index ];
         
-        if ( time > current_media.duration || time < 0 ) {
-            return;
-        }
-        
-        const time_in_micro = time * 100;
-        
         const parsedTime = ( time * current_media.duration_micro ) / 100;
         
         this._current_media_begin = micro_since_startup - parsedTime;
