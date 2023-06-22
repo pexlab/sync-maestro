@@ -185,7 +185,7 @@ export class Instructor {
         
         const micro_since_startup = timer.currentMicroTickSinceStartup;
         
-        const current_media = this.current_playlist.media[ this._current_media_index ];
+        const current_media = this.current_media;
         
         const parsedTime = ( time * current_media.duration_micro ) / 100;
         

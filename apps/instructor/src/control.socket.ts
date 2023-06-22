@@ -98,7 +98,7 @@ export class ControlSocket {
                     current_media: {
                         name    : instructor.current_media.name,
                         duration: Math.floor(instructor.current_media.duration * 1000),
-                        position: Math.floor(instructor.media_runtime),
+                        position: Math.floor(instructor.media_runtime) < 0 ? 0 : Math.floor(instructor.media_runtime),
                         paused  : instructor.state === 'Paused',
                         waiting : instructor.state === 'WaitingForTakeOff'
                     },
