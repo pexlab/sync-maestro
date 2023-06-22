@@ -5,41 +5,48 @@
     <div class="item">
         <span>Uart</span>
         <div class="uart">
+
             <div>
+
                 <span><svg-icon src="assets/icon/small.svg"></svg-icon> Macro Timeframe</span>
+
                 <span>Current tick</span>
-                <span #macroTick>×</span>
+                <span #macro>×</span>
+
                 <span>Ticks since startup</span>
-                <span #macroTicksSinceStart>×</span>
+                <span #macroSinceStartup>×</span>
+
                 <span>Tick occurrence</span>
-                <span>1.000 ms</span>
-                <span>Since last tick</span>
-                <span #macroTickLastUpdate>×&nbsp;ms</span>
-                <span>Field discrepancy</span>
-                <span #macroTickDiscrepancy>×&nbsp;μs</span>
-                <span>Singular discrepancy</span>
-                <span>×&nbsp;μs</span>
-                <span>Overall discrepancy</span>
-                <span>×&nbsp;μs</span>
+                <span #macroOccurrence>×</span>
+
+                <span>Discrepancy</span>
+                <span #macroDiscrepancy>×</span>
+
+                <span>Discrepancy since startup</span>
+                <span #macroSinceStartupDiscrepancy>×</span>
             </div>
+
             <div>
+
                 <span><svg-icon src="assets/icon/large.svg"></svg-icon> Micro Timeframe</span>
-                <span>Current Tick</span>
-                <span #microTick>×</span>
+
+                <span>Current tick</span>
+                <span #micro>×</span>
+
                 <span>Ticks since startup</span>
-                <span #microTicksSinceStart>×</span>
+                <span #microSinceStartup>×</span>
+
                 <span>Tick occurrence</span>
-                <span>10.000 μs</span>
-                <span>Since last tick</span>
-                <span #microTickLastUpdate>×&nbsp;μs</span>
-                <span>Field discrepancy</span>
-                <span #microTickDiscrepancy>×&nbsp;μs</span>
-                <span>Singular discrepancy</span>
-                <span>×&nbsp;μs</span>
-                <span>Overall discrepancy</span>
-                <span>×&nbsp;μs</span>
+                <span #microOccurrence>×</span>
+
+                <span>Discrepancy</span>
+                <span #microDiscrepancy>×</span>
+
+                <span>Discrepancy since startup</span>
+                <span #microSinceStartupDiscrepancy>×</span>
             </div>
-            <button class="red" (click)="timer.enable()">
+
+            <button class="red">
                 <svg-icon src="assets/icon/reset.svg"></svg-icon>
                 <span>Reset statistics</span>
             </button>
@@ -96,7 +103,7 @@
 
                     <div>
                         <svg-icon src="assets/icon/offset.svg"></svg-icon>
-                        <span>{{ ReadableNumber(device.offset, { unit: 'ms' }) }} Offset</span>
+                        <span>{{ ReadableNumber(device.offset, {unit: 'ms'}) }} Offset</span>
                     </div>
 
                     <div>
@@ -138,11 +145,35 @@
     </div>
 
     <div class="item">
-        <span>Tasks in progress</span>
-    </div>
 
-    <div class="item">
-        <span>Playlist</span>
+        <span>Media</span>
+
+        <div class="media">
+            <span #mediaName></span>
+            <span #mediaStatus></span>
+
+            <div class="track">
+                <span #mediaPosition></span>
+                <div #mediaBar (click)="scrub($event)">
+                    <div #mediaProgress></div>
+                </div>
+                <span #mediaDuration></span>
+            </div>
+
+            <div class="buttons">
+
+                <button (click)="rewind()">
+                    <svg-icon src="assets/icon/previous.svg"></svg-icon>
+                </button>
+
+                <button (click)="toggle()" #mediaControl></button>
+
+                <button (click)="skip()">
+                    <svg-icon src="assets/icon/next.svg"></svg-icon>
+                </button>
+
+            </div>
+        </div>
     </div>
 
 </div>

@@ -1,11 +1,14 @@
 import { HttpClient } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, inject, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Color, FeColorPalette, PopupService, ThemeService } from '@pexlab/ngx-front-engine';
-import { IRegisteredDevice, ZRegisteredDevice } from '@sync-maestro/shared-interfaces';
-import { PromiseLoop, ReadableCase, ReadableNumber, WebSerialTimer } from '@sync-maestro/shared-utils';
+import { IRegisteredDevice, ZClientToControlCommand, ZRegisteredDevice, ZServerToControllerCommand } from '@sync-maestro/shared-interfaces';
+import { parseZod, ReadableCase, ReadableNumber } from '@sync-maestro/shared-utils';
 import { SvgIconRegistryService } from 'angular-svg-icon';
 import capitalize from 'just-capitalize';
 import kebabCase from 'just-kebab-case';
+import { retry, timer } from 'rxjs';
+import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { z } from 'zod';
 import { DeviceSettingsDialogComponent } from '../device-settings-dialog/device-settings-dialog.component';
 
@@ -16,39 +19,29 @@ import { DeviceSettingsDialogComponent } from '../device-settings-dialog/device-
 } )
 export class AppComponent implements AfterViewInit {
     
-    @ViewChild( 'macroTick' )
-    private macroTickMsg!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'macro' ) private macro!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'macroSinceStartup' ) private macro_since_startup!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'macroOccurrence' ) private macro_occurrence!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'macroDiscrepancy' ) private macro_discrepancy!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'macroSinceStartupDiscrepancy' ) private macro_since_startup_discrepancy!: ElementRef<HTMLSpanElement>;
     
-    @ViewChild( 'microTick' )
-    private microTickMsg!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'micro' ) private micro!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'microSinceStartup' ) private micro_since_startup!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'microOccurrence' ) private micro_occurrence!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'microDiscrepancy' ) private micro_discrepancy!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'microSinceStartupDiscrepancy' ) private micro_since_startup_discrepancy!: ElementRef<HTMLSpanElement>;
     
-    @ViewChild( 'macroTicksSinceStart' )
-    private macroSinceStartMsg!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'mediaName' ) private media_name!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'mediaStatus' ) private media_status!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'mediaPosition' ) private media_position!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'mediaProgress' ) private media_progress!: ElementRef<HTMLDivElement>;
+    @ViewChild( 'mediaBar' ) private media_bar!: ElementRef<HTMLDivElement>;
+    @ViewChild( 'mediaDuration' ) private media_duration!: ElementRef<HTMLSpanElement>;
+    @ViewChild( 'mediaControl' ) private media_control!: ElementRef<HTMLDivElement>;
     
-    @ViewChild( 'microTicksSinceStart' )
-    private microSinceStartMsg!: ElementRef<HTMLSpanElement>;
-    
-    @ViewChild( 'macroTickLastUpdate' )
-    private lastUpdateMsgMacro!: ElementRef<HTMLSpanElement>;
-    
-    @ViewChild( 'microTickLastUpdate' )
-    private lastUpdateMsgMicro!: ElementRef<HTMLSpanElement>;
-    
-    @ViewChild( 'macroTickDiscrepancy' )
-    private discrepancyMsgMacro!: ElementRef<HTMLSpanElement>;
-    
-    @ViewChild( 'microTickDiscrepancy' )
-    private discrepancyMsgMicro!: ElementRef<HTMLSpanElement>;
-    
-    private lastMacroUpdate: number = 0;
-    private lastMicroUpdate: number = 0;
-    
-    private lastMacroDiscrepancyChange = 0;
-    private lastMicroDiscrepancyChange = 0;
+    private destroyRef = inject( DestroyRef );
     
     public activeDevices: z.infer<typeof ZRegisteredDevice>[] = [];
-    
-    public timer = new WebSerialTimer();
     
     constructor(
         private iconReg: SvgIconRegistryService,
@@ -143,36 +136,153 @@ export class AppComponent implements AfterViewInit {
         } );
     }
     
+    private websocket!: WebSocketSubject<unknown>;
+    
     public ngAfterViewInit(): void {
         
-        this.updateLoop();
-        
-        this.timer.onMacroTick.subscribe( ( tick ) => {
-            this.lastMacroUpdate = performance.now();
+        this.websocket = webSocket( {
+            url: 'ws://localhost:3002'
         } );
         
-        this.timer.onMicroTick.subscribe( ( tick ) => {
-            this.lastMicroUpdate = performance.now();
-        } );
-        
-        const stopLoop = PromiseLoop( () => {
-            
-            return new Promise<void>( ( resolve ) => {
-                this.http.get<z.infer<typeof ZRegisteredDevice>[]>( 'http://localhost:3000/devices' ).subscribe( {
-                    next    : ( response ) => {
-                        this.activeDevices = response;
-                    },
-                    complete: () => {
-                        resolve();
+        this.websocket.pipe(
+            takeUntilDestroyed( this.destroyRef ),
+            retry( {
+                delay: () => {
+                    
+                    this.macro.nativeElement.innerText                           = '×';
+                    this.macro_since_startup.nativeElement.innerText             = '×';
+                    this.macro_occurrence.nativeElement.innerText                = '×';
+                    this.macro_discrepancy.nativeElement.innerText               = '×';
+                    this.macro_since_startup_discrepancy.nativeElement.innerText = '×';
+                    
+                    this.micro.nativeElement.innerText                           = '×';
+                    this.micro_since_startup.nativeElement.innerText             = '×';
+                    this.micro_occurrence.nativeElement.innerText                = '×';
+                    this.micro_discrepancy.nativeElement.innerText               = '×';
+                    this.micro_since_startup_discrepancy.nativeElement.innerText = '×';
+                    
+                    this.media_name.nativeElement.innerText        = '×';
+                    this.media_status.nativeElement.innerText      = '×';
+                    this.media_position.nativeElement.innerText    = '×';
+                    this.media_duration.nativeElement.innerText    = '×';
+                    this.media_progress.nativeElement.style.width  = '0%';
+                    this.media_control.nativeElement.style.display = 'none';
+                    
+                    return timer( 2000 );
+                }
+            } )
+        ).subscribe( {
+            next: ( message ) => {
+                
+                try {
+                    
+                    const command = parseZod( ZServerToControllerCommand, message as any );
+                    
+                    switch ( command.type ) {
+                        
+                        case 'Info': {
+                            
+                            /* Macro */
+                            
+                            this.macro.nativeElement.innerText = ReadableNumber(
+                                command.macro,
+                                { padding: '000', sign: 'never', unit: 'Mt' }
+                            );
+                            
+                            this.macro_since_startup.nativeElement.innerText = ReadableNumber(
+                                command.macro_since_startup,
+                                { padding: '000.000', sign: 'never', unit: 'Mt' }
+                            );
+                            
+                            this.macro_occurrence.nativeElement.innerText = ReadableNumber(
+                                command.macro_occurrence,
+                                { sign: 'never', unit: 'ms' }
+                            );
+                            
+                            this.macro_discrepancy.nativeElement.innerText = ReadableNumber(
+                                command.macro_discrepancy,
+                                { padding: '000.000', unit: 'μs' }
+                            );
+                            
+                            this.macro_since_startup_discrepancy.nativeElement.innerText = ReadableNumber(
+                                command.macro_since_startup_discrepancy,
+                                { padding: '000.000', unit: 'μs' }
+                            );
+                            
+                            /* Micro */
+                            
+                            this.micro.nativeElement.innerText = ReadableNumber(
+                                command.micro,
+                                { padding: '000', sign: 'never', unit: 'μt' }
+                            );
+                            
+                            this.micro_since_startup.nativeElement.innerText = ReadableNumber(
+                                command.micro_since_startup,
+                                { padding: '000.000.000', sign: 'never', unit: 'μt' }
+                            );
+                            
+                            this.micro_occurrence.nativeElement.innerText = ReadableNumber(
+                                command.micro_occurrence,
+                                { sign: 'never', unit: 'ms' }
+                            );
+                            
+                            this.micro_discrepancy.nativeElement.innerText = ReadableNumber(
+                                command.micro_discrepancy,
+                                { padding: '000.000', unit: 'μs' }
+                            );
+                            
+                            this.micro_since_startup_discrepancy.nativeElement.innerText = ReadableNumber(
+                                command.micro_since_startup_discrepancy,
+                                { padding: '000.000', unit: 'μs' }
+                            );
+                            
+                            /* Devices */
+                            
+                            this.activeDevices = command.devices;
+                            
+                            /* Media */
+                            
+                            this.media_name.nativeElement.innerText = 'Video: ' + command.current_media.name;
+                            
+                            let positionSeconds   = Math.floor( command.current_media.position / 1000 );
+                            const positionMinutes = Math.floor( positionSeconds / 60 );
+                            positionSeconds       = Math.floor( positionSeconds % 60 );
+                            
+                            let durationSeconds   = Math.floor( command.current_media.duration / 1000 );
+                            const durationMinutes = Math.floor( durationSeconds / 60 );
+                            durationSeconds       = Math.floor( durationSeconds % 60 );
+                            
+                            this.media_position.nativeElement.innerText = `${ positionMinutes.toString().padStart( 2, '0' ) }:${ positionSeconds.toString().padStart( 2, '0' ) }`;
+                            
+                            this.media_duration.nativeElement.innerText = `${ durationMinutes.toString().padStart( 2, '0' ) }:${ durationSeconds.toString().padStart( 2, '0' ) }`;
+                            
+                            const progressPercent = command.current_media.position / command.current_media.duration * 100;
+                            
+                            this.media_progress.nativeElement.style.width = `${ progressPercent.toFixed( 2 ) }%`;
+                            
+                            this.media_control.nativeElement.innerText = command.current_media.paused ? '▶' : '⏸';
+                            
+                            if ( command.current_media.waiting ) {
+                                this.media_status.nativeElement.innerText = 'Status: Waiting for takeoff';
+                            } else {
+                                this.media_status.nativeElement.innerText = 'Status: ' + ( command.current_media.paused ? 'Paused' : 'Playing' );
+                            }
+                            
+                            this.media_control.nativeElement.style.display = 'block';
+                            
+                            break;
+                        }
                     }
-                } );
-            } );
-            
-        }, 500 );
+                    
+                } catch ( ignored ) {
+                }
+            }
+        } );
     }
     
     public configureDevice( device: z.infer<typeof ZRegisteredDevice> ) {
-        this.popup.createPopupRef( {
+        
+        const popup = this.popup.createPopupRef( {
             title    : 'Configure device',
             component: DeviceSettingsDialogComponent,
             reflect  : { device },
@@ -180,53 +290,54 @@ export class AppComponent implements AfterViewInit {
                 minWidth : '90vw',
                 minHeight: '90vh'
             }
-        } ).open();
+        } );
+        
+        popup.onTransmit( ( message ) => {
+            if ( typeof message === 'object' ) {
+                this.websocket.next( parseZod( ZClientToControlCommand, {
+                    type  : 'ConfigureDevice',
+                    name  : device.name,
+                    config: message
+                } ) );
+            }
+        } );
+        
+        popup.open();
     }
     
     public trackByDevice( index: number, device: IRegisteredDevice ) {
         return device.name;
     }
     
-    private updateLoop() {
+    public toggle() {
+        this.websocket.next( parseZod( ZClientToControlCommand, {
+            type: 'TogglePlayback'
+        } ) );
+    }
+    
+    public skip() {
+        this.websocket.next( parseZod( ZClientToControlCommand, {
+            type: 'Next'
+        } ) );
+    }
+    
+    public rewind() {
+        this.websocket.next( parseZod( ZClientToControlCommand, {
+            type: 'Previous'
+        } ) );
+    }
+    
+    public scrub( event: MouseEvent ) {
         
-        if ( !this.lastUpdateMsgMicro ) {
-            return;
-        }
+        const mouseX     = event.clientX;
+        const mediaStart = this.media_bar.nativeElement.getBoundingClientRect().left;
+        const mediaEnd   = this.media_bar.nativeElement.getBoundingClientRect().right;
+        const percent    = ( mouseX - mediaStart ) / ( mediaEnd - mediaStart );
         
-        const macro = this.lastMacroUpdate;
-        const micro = this.lastMicroUpdate;
-        const now   = performance.now();
-        
-        const microSinceLastMacroTick = Math.floor( ( now - macro ) * 1000 );
-        const milliSinceLastMacroTick = Math.floor( now - macro );
-        
-        const microSinceLastMicroTick = Math.floor( ( now - micro ) * 1000 );
-        
-        this.lastUpdateMsgMacro.nativeElement.innerText = ReadableNumber( milliSinceLastMacroTick, { padding: '000.000', unit: 'ms' } );
-        this.lastUpdateMsgMicro.nativeElement.innerText = ReadableNumber( microSinceLastMicroTick, { padding: '000.000', unit: 'μs' } );
-        
-        const discrepancyMacro = microSinceLastMacroTick > 1000000 ? microSinceLastMacroTick - 1000000 : 0;
-        const discrepancyMicro = microSinceLastMicroTick > 10000 ? microSinceLastMicroTick - 10000 : 0;
-        
-        if ( discrepancyMacro !== 0 || now - this.lastMacroDiscrepancyChange > 2000 ) {
-            this.discrepancyMsgMacro.nativeElement.innerText = ReadableNumber( discrepancyMacro, { padding: '000.000', unit: 'μs' } );
-            this.lastMacroDiscrepancyChange                  = now;
-        }
-        
-        if ( discrepancyMicro !== 0 || now - this.lastMicroDiscrepancyChange > 1000 ) {
-            this.discrepancyMsgMicro.nativeElement.textContent = ReadableNumber( discrepancyMicro, { padding: '000.000', unit: 'μs' } );
-            this.lastMicroDiscrepancyChange                    = now;
-        }
-        
-        this.macroTickMsg.nativeElement.innerText       = ReadableNumber( this.timer.currentMacroTick, { padding: '000', sign: 'never', unit: ' t' } );
-        this.macroSinceStartMsg.nativeElement.innerText = ReadableNumber( this.timer.currentMacroTickSinceStartup, { padding: '000.000', sign: 'never', unit: ' t' } );
-        
-        this.microTickMsg.nativeElement.innerText       = ReadableNumber( this.timer.currentMicroTick, { padding: '000', sign: 'never', unit: ' t' } );
-        this.microSinceStartMsg.nativeElement.innerText = ReadableNumber( this.timer.currentMicroTickSinceStartup, { padding: '0.000.000', sign: 'never', unit: ' t' } );
-        
-        requestAnimationFrame( () => {
-            this.updateLoop();
-        } );
+        this.websocket.next( parseZod( ZClientToControlCommand, {
+            type         : 'Scrub',
+            be_at_percent: percent
+        } ) );
     }
     
     protected readonly kebabCase      = kebabCase;

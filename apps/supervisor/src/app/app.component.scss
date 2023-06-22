@@ -202,6 +202,94 @@
 		  }
 		}
 	  }
+	  
+	  & > .media {
+		
+		display        : grid;
+		grid-auto-flow : row;
+		grid-gap       : 10px;
+		
+		color          : white;
+		
+		padding        : 20px;
+		
+		@include theme.commonFont('code');
+		@include theme.commonFontSize('subheading');
+		
+		& > span {
+		  opacity : .7;
+		}
+		
+		& > .track {
+		  
+		  display               : grid;
+		  grid-template-columns : 70px 1fr 70px;
+		  grid-auto-flow        : column;
+		  justify-items         : center;
+		  align-items           : center;
+		  grid-gap              : 20px;
+		  
+		  & > :nth-child(1) {
+			justify-self : start;
+			opacity      : .7;
+		  }
+		  
+		  & > div {
+			
+			width         : 100%;
+			height        : 30px;
+			
+			border-radius : 2px;
+			
+			@include shared.crt(#0b440b);
+			
+			cursor        : url('../assets/cursor/Cursor_15.cur'), auto;
+			
+			&:hover {
+			  
+			  & > div {
+				@include shared.crt(grey);
+				outline : 1px dotted lightgrey;
+			  }
+			}
+			
+			& > div {
+			  
+			  border-radius  : 2px;
+			  
+			  height         : 100%;
+			  
+			  outline        : 1px dotted transparent;
+			  outline-offset : 2px;
+			  
+			  @include shared.crt(#178d17);
+			}
+		  }
+		  
+		  & > :nth-child(3) {
+			justify-self : end;
+			opacity      : .7;
+		  }
+		}
+		
+		& > .buttons {
+		  
+		  display        : grid;
+		  grid-auto-flow : column;
+		  grid-gap       : 20px;
+		  
+		  justify-self   : center;
+		  
+		  width          : fit-content;
+		  
+		  & > button {
+			width  : 35px;
+			height : 35px;
+			margin : 10px 0 0 0;
+			@include theme.inlineIcon(18px)
+		  }
+		}
+	  }
 	}
   }
 }

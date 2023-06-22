@@ -9,7 +9,7 @@ export function parseJSON(object: string) {
     }
 }
 
-export function parseZod<T extends ZodSchema>(schema: T, data: unknown): z.infer<T> {
+export function parseZod<T extends ZodSchema>(schema: T, data: z.infer<T>): z.infer<T> {
     try {
         return schema.parse(data);
     } catch (error) {

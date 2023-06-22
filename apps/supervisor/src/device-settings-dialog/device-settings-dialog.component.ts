@@ -88,16 +88,8 @@ export class DeviceSettingsDialogComponent implements IFePopup, OnInit, AfterVie
             delete val.video;
         }
         
-        const config = ZDeviceConfig.parse( val );
-        
-        this.http.post( 'http://localhost:3000/device', {
-            name: this.device.name,
-            config
-        } ).subscribe( {
-            next: () => {
-                this.close();
-            }
-        } );
+        this.transmitToHost( val);
+        this.close();
     }
     
     public oneOf( value: string | null, ...values: ( string | null )[] ) {
