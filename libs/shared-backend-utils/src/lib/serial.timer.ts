@@ -126,6 +126,8 @@ export class SerialTimer implements Timer {
                     this.onTick.next();
                     
                     startByte = null;
+                }else{
+                    buffer = buffer.slice( 1 );
                 }
             }
         } );
