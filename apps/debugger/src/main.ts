@@ -1,38 +1,35 @@
-import { SerialPort } from "serialport";
-import process from "process";
+import { SerialTimer } from 'shared-backend-utils';
 
-const port = new SerialPort({
-  path: "COM8",
-  baudRate: 9600,
-  dataBits: 8,
-  stopBits: 1,
-  parity: "none",
-  highWaterMark: 1,
-  autoOpen: true,
-  xon: false,
-  xoff: false,
-  xany: true,
-  rtscts: false,
-  hupcl: false,
-  vmin: 0,
-  vtime: 0
-});
-
-let last = process.hrtime();
-
-port.on("data", (data) => {
-
-  const byte = data[0];
-
-  if (byte === 0x00 || byte === 0xFF) {
-    return;
+const timer = new SerialTimer("/dev/tty.usbserial-120", {
+  handleFaultyTick: 'Replace',
+  macroDiscrepancy: {
+    exceedThreshold: {
+      disable: 0,
+      warning: 0,
+      error: 0
+    },
+    undercutThreshold:{
+      disable: 0,
+      warning: 0,
+      error: 0
+    }
+  },
+  microDiscrepancy: {
+    exceedThreshold: {
+      disable: 0,
+      warning: 0,
+      error: 0
+    },
+    undercutThreshold:{
+      disable: 0,
+      warning: 0,
+      error: 0
+    }
   }
+})
 
-  const now = process.hrtime();
-  const elapsedHrtime = process.hrtime(last);
-  const diff = elapsedHrtime[0] * 1000 + elapsedHrtime[1] / 1e6
+timer.onMicroTick.subscribe(value => {
+  console.log(value.tick + " " + value.discrepancy_since_last_tick)
+})
 
-  console.log(byte + ": " + ((10 - diff) * -1));
-
-  last = now;
-});
+timer.enable()

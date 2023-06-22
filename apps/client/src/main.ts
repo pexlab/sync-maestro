@@ -1,5 +1,4 @@
-import { Timer } from '@sync-maestro/shared-interfaces';
-import { EmptyTimer } from '@sync-maestro/shared-utils';
+import { EmptyTimer, Timer } from '@sync-maestro/shared-utils';
 import { SerialPort } from 'serialport';
 import { SerialTimer } from 'shared-backend-utils';
 import YAML from 'yaml';
@@ -28,7 +27,33 @@ const bootstrap = async () => {
                 return [ port.path, port.path, '{bold}Information available for this port:{/bold}\n\n' + YAML.stringify( port ).trim() ];
             } ) );
             
-            timer = new SerialTimer( port );
+            timer = new SerialTimer( port, {
+                handleFaultyTick: 'Replace',
+                macroDiscrepancy: {
+                    exceedThreshold: {
+                        disable: 0,
+                        warning: 0,
+                        error: 0
+                    },
+                    undercutThreshold:{
+                        disable: 0,
+                        warning: 0,
+                        error: 0
+                    }
+                },
+                microDiscrepancy: {
+                    exceedThreshold: {
+                        disable: 0,
+                        warning: 0,
+                        error: 0
+                    },
+                    undercutThreshold:{
+                        disable: 0,
+                        warning: 0,
+                        error: 0
+                    }
+                }
+            });
             
             break;
         }
