@@ -104,6 +104,15 @@ export class Instructor {
         logMessage( 'Preparations for takeoff completed' );
     }
     
+    public toggle() {
+        if ( this._paused ) {
+            this.resume();
+            return;
+        }
+        
+        this.pause();
+    }
+    
     public resume() {
         
         if ( !this._paused ) {
@@ -184,7 +193,11 @@ export class Instructor {
         
         const time_in_micro = time * 100;
         
-        this._current_media_begin = micro_since_startup - time_in_micro;
+        const parsedTime = (time * current_media.duration_micro) / 100
+        
+        
+        
+        this._current_media_begin = micro_since_startup - parsedTime;
         
         if ( this._paused ) {
             return;
