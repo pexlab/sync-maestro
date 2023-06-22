@@ -111,6 +111,6 @@ export class ControlSocket {
                 ws.send( command );
             } );
             
-        }, 1000 );
+        }, 100 );
     }
 }
