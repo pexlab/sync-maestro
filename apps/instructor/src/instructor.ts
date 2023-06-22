@@ -187,7 +187,7 @@ export class Instructor {
         
         const current_media = this.current_media;
         
-        const parsedTime = ( time * current_media.duration_micro ) / 100;
+        const parsedTime = ( (time * 100) * current_media.duration_micro ) / 100;
         
         this._current_media_begin = micro_since_startup - parsedTime;
         
