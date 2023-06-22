@@ -96,11 +96,11 @@ export class ControlSocket {
                     micro_since_startup_discrepancy: 0,
                     
                     current_media: {
-                        name    : 'Idle',
-                        duration: 10000,
-                        position: 3500,
-                        paused  : true,
-                        waiting : false
+                        name    : instructor.current_media.name,
+                        duration: instructor.current_media.duration,
+                        position: instructor.media_runtime,
+                        paused  : instructor.state === 'Paused',
+                        waiting : instructor.state === 'WaitingForTakeOff'
                     },
                     
                     devices: registeredDevices

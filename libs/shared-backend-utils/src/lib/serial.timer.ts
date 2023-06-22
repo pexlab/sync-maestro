@@ -72,15 +72,12 @@ export class SerialTimer implements Timer {
             
             while ( buffer.length > 0 ) {
                 
-                if ( startByte === null ) {
-                    
-                    if ( buffer[ 0 ] === 255 || buffer[ 0 ] === 0 ) {
-                        startByte = buffer[ 0 ];
-                    }
-                    
-                    buffer = buffer.slice( 1 );
-                    
-                } else {
+                if ( buffer[ 0 ] === 255 || buffer[ 0 ] === 0 ) {
+                    startByte = buffer[ 0 ];
+                    continue;
+                }
+                
+                if ( startByte != null )  {
                     
                     if ( buffer.length < 1 ) {
                         break;

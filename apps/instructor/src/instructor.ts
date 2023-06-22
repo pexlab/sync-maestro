@@ -1,6 +1,6 @@
 import { parseZodFromJSON } from '@sync-maestro/shared-utils';
 import fs from 'fs';
-import { IPlaylist, IState, ZPlaylist } from './interface/media.interface';
+import { IMedia, IPlaylist, IState, ZPlaylist } from './interface/media.interface';
 import { clientManager, timer } from './main';
 import { Bazaar } from './util/bazaar.util';
 import { logMessage } from './util/logger.util';
@@ -193,9 +193,7 @@ export class Instructor {
         
         const time_in_micro = time * 100;
         
-        const parsedTime = (time * current_media.duration_micro) / 100
-        
-        
+        const parsedTime = ( time * current_media.duration_micro ) / 100;
         
         this._current_media_begin = micro_since_startup - parsedTime;
         
@@ -272,5 +270,9 @@ export class Instructor {
         const media_runtime = timer.currentMicroTickSinceStartup - this._current_media_begin;
         
         return media_runtime * 10;
+    }
+    
+    public get current_media(): IMedia {
+        return this._current_playlist.media[ this.normalizeMediaIndex( this._current_playlist, this._current_media_index ) ];
     }
 }
