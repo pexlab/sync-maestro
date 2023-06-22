@@ -5,7 +5,7 @@ import { SerialPort } from 'serialport';
 import { SerialTimer } from 'shared-backend-utils';
 import YAML from 'yaml';
 import { Obeyer } from './obeyer/obeyer';
-import { askList, updateStatistics } from './util/console.util';
+import { askList, log, updateStatistics } from './util/console.util';
 
 export let timer: Timer;
 
@@ -37,6 +37,8 @@ const bootstrap = async () => {
             );
             
             timer = new SerialTimer( port );
+    
+            log( 'Using conductor on port: ' + port );
             
             break;
         }
