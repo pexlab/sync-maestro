@@ -1,11 +1,31 @@
 [
     {
         "id"   : 0,
-        "name" : "Serienmarathon #8",
+        "name" : "Test",
         "media": [
             {
-                "name"     : "Folge 5",
+                "name"     : "Video 1",
+                "file_path": "one.mp4"
+            },
+            {
+                "name"     : "Video 2",
+                "file_path": "two.mp4"
+            },
+            {
+                "name"     : "Video 3",
+                "file_path": "three.mp4"
+            },
+            {
+                "name"     : "Video 4",
+                "file_path": "four.mp4"
+            },
+            {
+                "name"     : "Video 5",
                 "file_path": "five.mp4"
+            },
+            {
+                "name"     : "Video 6",
+                "file_path": "six.mp4"
             }
         ]
     }
