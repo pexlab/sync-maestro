@@ -94,6 +94,7 @@ export class SerialTimer implements Timer {
                     if ( startByte === 0 ) {
                         
                         if(tick > 254){
+                            startByte = null;
                             continue;
                         }
                         
@@ -111,6 +112,7 @@ export class SerialTimer implements Timer {
                     /* Micro Tick */
                     if ( startByte === 255 ) {
                         if(tick > 100){
+                            startByte = null;
                             continue;
                         }
                         this._microTick = tick - 1;
